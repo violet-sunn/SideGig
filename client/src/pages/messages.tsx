@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Search, Send, Phone, Video, MoreVertical, Paperclip } from "lucide-react";
+import Sidebar from "@/components/layout/sidebar";
 
 export default function Messages() {
   const { toast } = useToast();
