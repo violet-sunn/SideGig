@@ -1,0 +1,329 @@
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { setupAuth, isAuthenticated } from "./replitAuth";
+import {
+  insertTaskSchema,
+  insertBidSchema,
+  insertMessageSchema,
+  insertReviewSchema,
+  insertDisputeSchema,
+} from "@shared/schema";
+import { z } from "zod";
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth middleware
+  await setupAuth(app);
+
+  // Auth routes
+  app.get("/api/auth/user", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // User profile routes
+  app.post("/api/users/profile", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { role, skills, bio } = req.body;
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const updatedUser = await storage.upsertUser({
+        ...user,
+        role,
+        skills,
+        bio,
+      });
+
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
+  app.get("/api/users/stats", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const stats = await storage.getUserStats(userId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+      res.status(500).json({ message: "Failed to fetch stats" });
+    }
+  });
+
+  // Task routes
+  app.post("/api/tasks", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const taskData = insertTaskSchema.parse({
+        ...req.body,
+        clientId: userId,
+      });
+
+      const task = await storage.createTask(taskData);
+      res.json(task);
+    } catch (error) {
+      console.error("Error creating task:", error);
+      res.status(500).json({ message: "Failed to create task" });
+    }
+  });
+
+  app.get("/api/tasks/my", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      let tasks;
+      if (user?.role === "client") {
+        tasks = await storage.getTasksByClient(userId);
+      } else {
+        tasks = await storage.getTasksByFreelancer(userId);
+      }
+      
+      res.json(tasks);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      res.status(500).json({ message: "Failed to fetch tasks" });
+    }
+  });
+
+  app.get("/api/tasks/available", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const tasks = await storage.getAvailableTasks(userId);
+      res.json(tasks);
+    } catch (error) {
+      console.error("Error fetching available tasks:", error);
+      res.status(500).json({ message: "Failed to fetch available tasks" });
+    }
+  });
+
+  app.get("/api/tasks/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const task = await storage.getTask(id);
+      
+      if (!task) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+      
+      res.json(task);
+    } catch (error) {
+      console.error("Error fetching task:", error);
+      res.status(500).json({ message: "Failed to fetch task" });
+    }
+  });
+
+  app.patch("/api/tasks/:id/status", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { status, freelancerId } = req.body;
+      
+      await storage.updateTaskStatus(id, status, freelancerId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating task status:", error);
+      res.status(500).json({ message: "Failed to update task status" });
+    }
+  });
+
+  // Bid routes
+  app.post("/api/bids", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const bidData = insertBidSchema.parse({
+        ...req.body,
+        freelancerId: userId,
+      });
+
+      const bid = await storage.createBid(bidData);
+      res.json(bid);
+    } catch (error) {
+      console.error("Error creating bid:", error);
+      res.status(500).json({ message: "Failed to create bid" });
+    }
+  });
+
+  app.get("/api/bids/task/:taskId", isAuthenticated, async (req: any, res) => {
+    try {
+      const { taskId } = req.params;
+      const bids = await storage.getBidsByTask(taskId);
+      res.json(bids);
+    } catch (error) {
+      console.error("Error fetching bids:", error);
+      res.status(500).json({ message: "Failed to fetch bids" });
+    }
+  });
+
+  app.get("/api/bids/my", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const bids = await storage.getBidsByFreelancer(userId);
+      res.json(bids);
+    } catch (error) {
+      console.error("Error fetching bids:", error);
+      res.status(500).json({ message: "Failed to fetch bids" });
+    }
+  });
+
+  app.patch("/api/bids/:id/status", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      await storage.updateBidStatus(id, status);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating bid status:", error);
+      res.status(500).json({ message: "Failed to update bid status" });
+    }
+  });
+
+  // Message routes
+  app.post("/api/messages", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const messageData = insertMessageSchema.parse({
+        ...req.body,
+        senderId: userId,
+      });
+
+      const message = await storage.createMessage(messageData);
+      res.json(message);
+    } catch (error) {
+      console.error("Error creating message:", error);
+      res.status(500).json({ message: "Failed to create message" });
+    }
+  });
+
+  app.get("/api/messages/task/:taskId", isAuthenticated, async (req: any, res) => {
+    try {
+      const { taskId } = req.params;
+      const messages = await storage.getMessagesByTask(taskId);
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      res.status(500).json({ message: "Failed to fetch messages" });
+    }
+  });
+
+  app.get("/api/conversations", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const conversations = await storage.getConversations(userId);
+      res.json(conversations);
+    } catch (error) {
+      console.error("Error fetching conversations:", error);
+      res.status(500).json({ message: "Failed to fetch conversations" });
+    }
+  });
+
+  app.patch("/api/messages/read/:taskId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { taskId } = req.params;
+      
+      await storage.markMessagesAsRead(taskId, userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking messages as read:", error);
+      res.status(500).json({ message: "Failed to mark messages as read" });
+    }
+  });
+
+  // Payment routes
+  app.get("/api/payments", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const payments = await storage.getPaymentsByUser(userId);
+      res.json(payments);
+    } catch (error) {
+      console.error("Error fetching payments:", error);
+      res.status(500).json({ message: "Failed to fetch payments" });
+    }
+  });
+
+  app.patch("/api/payments/:id/status", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      await storage.updatePaymentStatus(id, status);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating payment status:", error);
+      res.status(500).json({ message: "Failed to update payment status" });
+    }
+  });
+
+  // Review routes
+  app.post("/api/reviews", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const reviewData = insertReviewSchema.parse({
+        ...req.body,
+        reviewerId: userId,
+      });
+
+      const review = await storage.createReview(reviewData);
+      res.json(review);
+    } catch (error) {
+      console.error("Error creating review:", error);
+      res.status(500).json({ message: "Failed to create review" });
+    }
+  });
+
+  app.get("/api/reviews", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const reviews = await storage.getReviewsByUser(userId);
+      res.json(reviews);
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+      res.status(500).json({ message: "Failed to fetch reviews" });
+    }
+  });
+
+  // Dispute routes
+  app.post("/api/disputes", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const disputeData = insertDisputeSchema.parse({
+        ...req.body,
+        initiatorId: userId,
+      });
+
+      const dispute = await storage.createDispute(disputeData);
+      res.json(dispute);
+    } catch (error) {
+      console.error("Error creating dispute:", error);
+      res.status(500).json({ message: "Failed to create dispute" });
+    }
+  });
+
+  app.get("/api/disputes", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const disputes = await storage.getDisputesByUser(userId);
+      res.json(disputes);
+    } catch (error) {
+      console.error("Error fetching disputes:", error);
+      res.status(500).json({ message: "Failed to fetch disputes" });
+    }
+  });
+
+  const httpServer = createServer(app);
+  return httpServer;
+}
