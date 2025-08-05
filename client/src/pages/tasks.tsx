@@ -67,7 +67,7 @@ export default function Tasks() {
   const filteredTasks = tasks?.filter((task: any) => {
     const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          task.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = !statusFilter || task.status === statusFilter;
+    const matchesStatus = !statusFilter || statusFilter === "all" || task.status === statusFilter;
     return matchesSearch && matchesStatus;
   }) || [];
 
@@ -158,7 +158,7 @@ export default function Tasks() {
                     <SelectValue placeholder="Статус" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Все статусы</SelectItem>
+                    <SelectItem value="all">Все статусы</SelectItem>
                     <SelectItem value="draft">Черновик</SelectItem>
                     <SelectItem value="open">Открыта</SelectItem>
                     <SelectItem value="in_progress">В работе</SelectItem>

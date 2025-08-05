@@ -203,10 +203,10 @@ export default function ClientDashboard() {
                     <ListTodo className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-500 mb-4">У вас пока нет задач</p>
                     <Link href="/create-task">
-                      <a className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors">
+                      <span className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
                         <Plus className="h-4 w-4 mr-2" />
                         Создать первую задачу
-                      </a>
+                      </span>
                     </Link>
                   </div>
                 )}
