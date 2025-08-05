@@ -109,8 +109,12 @@ export default function Messages() {
     );
   }
 
+  const userRole = user?.role === "client" ? "client" : "freelancer";
+
   return (
     <div className="flex h-screen bg-background">
+      <Sidebar userRole={userRole} />
+      
       {/* Conversations Sidebar */}
       <aside className="w-80 bg-white shadow-sm border-r flex flex-col">
         <div className="p-6 border-b">
