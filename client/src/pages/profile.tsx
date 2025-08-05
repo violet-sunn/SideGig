@@ -262,13 +262,19 @@ export default function Profile() {
                       )}
 
                       <div>
-                        <Label htmlFor="bio">О себе</Label>
+                        <Label htmlFor="bio">
+                          {userRole === "client" ? "О компании" : "О себе"}
+                        </Label>
                         <Textarea
                           id="bio"
                           value={profileData.bio}
                           onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
                           disabled={!isEditing}
-                          placeholder="Расскажите о себе, опыте и интересах"
+                          placeholder={
+                            userRole === "client" 
+                              ? "Расскажите о своей компании, сфере деятельности, используемых технологиях и задачах, которые вы обычно размещаете"
+                              : "Расскажите о себе, своем опыте, специализации и технологиях, с которыми работаете"
+                          }
                           rows={4}
                         />
                       </div>
