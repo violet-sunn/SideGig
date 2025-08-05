@@ -19,11 +19,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/auth/user", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      
+      // Development mode: allow impersonation for testing
+      const impersonateUserId = req.query.impersonate as string;
+      if (process.env.NODE_ENV === "development" && impersonateUserId) {
+        const impersonatedUser = await storage.getUser(impersonateUserId);
+        if (impersonatedUser) {
+          return res.json(impersonatedUser);
+        }
+      }
+      
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Development route to get test users
+  app.get("/api/dev/test-users", async (req: any, res) => {
+    if (process.env.NODE_ENV !== "development") {
+      return res.status(404).json({ message: "Not found" });
+    }
+    
+    try {
+      const testUsers = await storage.getTestUsers();
+      res.json(testUsers);
+    } catch (error) {
+      console.error("Error fetching test users:", error);
+      res.status(500).json({ message: "Failed to fetch test users" });
     }
   });
 
