@@ -33,10 +33,10 @@ export default function Sidebar({ userRole }: SidebarProps) {
     { href: "/", icon: BarChart3, label: "Дашборд" },
     { href: "/tasks", icon: ListTodo, label: "Мои задачи" },
     { href: "/create-task", icon: Plus, label: "Создать задачу" },
-    { href: "/freelancers", icon: Users, label: "Найти фрилансеров" },
     { href: "/messages", icon: MessageSquare, label: "Сообщения" },
     { href: "/payments", icon: CreditCard, label: "Платежи" },
     { href: "/disputes", icon: Scale, label: "Споры" },
+    { href: "/profile", icon: UserCog, label: "Профиль" },
   ];
 
   const freelancerNavItems = [
@@ -105,15 +105,15 @@ export default function Sidebar({ userRole }: SidebarProps) {
             return (
               <li key={item.href}>
                 <Link href={item.href}>
-                  <a className={cn(
-                    "flex items-center p-3 rounded-lg transition-colors",
+                  <span className={cn(
+                    "flex items-center p-3 rounded-lg transition-colors cursor-pointer",
                     isActive 
                       ? "bg-primary text-white" 
                       : "hover:bg-gray-50 text-gray-700"
                   )}>
                     <item.icon className="h-5 w-5 mr-3" />
                     {item.label}
-                  </a>
+                  </span>
                 </Link>
               </li>
             );

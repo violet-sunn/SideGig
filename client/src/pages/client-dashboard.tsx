@@ -220,43 +220,43 @@ export default function ClientDashboard() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <Link href="/create-task">
-                  <a className="flex items-center p-4 bg-primary/5 rounded-lg hover:bg-primary/10 transition-colors">
+                  <span className="flex items-center p-4 bg-primary/5 rounded-lg hover:bg-primary/10 transition-colors cursor-pointer">
                     <Plus className="h-6 w-6 text-primary mr-3" />
                     <div>
                       <h4 className="font-medium text-gray-900">Создать задачу</h4>
-                      <p className="text-sm text-gray-600">Опубликуйте новую задачу для фрилансеров</p>
+                      <p className="text-sm text-gray-600">Опубликуйте новую задачу для исполнителей</p>
                     </div>
-                  </a>
+                  </span>
                 </Link>
 
-                <Link href="/freelancers">
-                  <a className="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
-                    <Users className="h-6 w-6 text-green-600 mr-3" />
+                <Link href="/tasks">
+                  <span className="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors cursor-pointer">
+                    <ListTodo className="h-6 w-6 text-green-600 mr-3" />
                     <div>
-                      <h4 className="font-medium text-gray-900">Найти фрилансеров</h4>
-                      <p className="text-sm text-gray-600">Поиск по навыкам и рейтингу</p>
+                      <h4 className="font-medium text-gray-900">Мои задачи</h4>
+                      <p className="text-sm text-gray-600">Управление задачами и заявками</p>
                     </div>
-                  </a>
+                  </span>
                 </Link>
 
                 <Link href="/messages">
-                  <a className="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                  <span className="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer">
                     <MessageSquare className="h-6 w-6 text-blue-600 mr-3" />
                     <div>
                       <h4 className="font-medium text-gray-900">Сообщения</h4>
                       <p className="text-sm text-gray-600">Общение с исполнителями</p>
                     </div>
-                  </a>
+                  </span>
                 </Link>
 
                 <Link href="/payments">
-                  <a className="flex items-center p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors">
+                  <span className="flex items-center p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors cursor-pointer">
                     <CreditCard className="h-6 w-6 text-orange-600 mr-3" />
                     <div>
                       <h4 className="font-medium text-gray-900">Платежи</h4>
                       <p className="text-sm text-gray-600">Управление эскроу-счетом</p>
                     </div>
-                  </a>
+                  </span>
                 </Link>
               </CardContent>
             </Card>

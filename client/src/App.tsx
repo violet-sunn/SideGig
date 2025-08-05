@@ -10,10 +10,12 @@ import ClientDashboard from "@/pages/client-dashboard";
 import FreelancerDashboard from "@/pages/freelancer-dashboard";
 import CreateTask from "@/pages/create-task";
 import BrowseTasks from "@/pages/browse-tasks";
+import Tasks from "@/pages/tasks";
 import Messages from "@/pages/messages";
 import Payments from "@/pages/payments";
 import Reviews from "@/pages/reviews";
 import Disputes from "@/pages/disputes";
+import Profile from "@/pages/profile";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -38,11 +40,12 @@ function Router() {
           <Route path="/" component={user?.role === "client" ? ClientDashboard : FreelancerDashboard} />
           <Route path="/create-task" component={CreateTask} />
           <Route path="/browse-tasks" component={BrowseTasks} />
-          <Route path="/tasks" component={user?.role === "client" ? ClientDashboard : FreelancerDashboard} />
+          <Route path="/tasks" component={Tasks} />
           <Route path="/messages" component={Messages} />
           <Route path="/payments" component={Payments} />
           <Route path="/reviews" component={Reviews} />
           <Route path="/disputes" component={Disputes} />
+          <Route path="/profile" component={Profile} />
           <Route component={NotFound} />
         </>
       )}
