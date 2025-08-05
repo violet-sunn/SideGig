@@ -232,16 +232,7 @@ export default function Profile() {
                         />
                       </div>
 
-                      <div>
-                        <Label htmlFor="location">Местоположение</Label>
-                        <Input
-                          id="location"
-                          value={profileData.location}
-                          onChange={(e) => setProfileData({ ...profileData, location: e.target.value })}
-                          disabled={!isEditing}
-                          placeholder="Город, страна"
-                        />
-                      </div>
+                      
 
                       {userRole === "freelancer" && (
                         <>
