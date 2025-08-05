@@ -25,7 +25,7 @@ export default function Chat({ taskId, otherUser, taskTitle, taskBudget }: ChatP
   const [messageText, setMessageText] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { data: messages, isLoading: messagesLoading } = useQuery({
+  const { data: messages, isLoading: messagesLoading } = useQuery<any[]>({
     queryKey: ["/api/messages/task", taskId],
     enabled: !!taskId,
     retry: false,

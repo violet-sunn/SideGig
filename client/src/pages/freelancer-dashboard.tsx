@@ -38,19 +38,24 @@ export default function FreelancerDashboard() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery<{
+    activeProjects: string;
+    totalEarned: string;
+    rating: string;
+    completedTasks: string;
+  }>({
     queryKey: ["/api/users/stats"],
     enabled: isAuthenticated,
     retry: false,
   });
 
-  const { data: activeProjects, isLoading: projectsLoading } = useQuery({
+  const { data: activeProjects, isLoading: projectsLoading } = useQuery<any[]>({
     queryKey: ["/api/tasks/my"],
     enabled: isAuthenticated,
     retry: false,
   });
 
-  const { data: availableTasks, isLoading: tasksLoading } = useQuery({
+  const { data: availableTasks, isLoading: tasksLoading } = useQuery<any[]>({
     queryKey: ["/api/tasks/available"],
     enabled: isAuthenticated,
     retry: false,

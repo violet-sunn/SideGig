@@ -39,13 +39,15 @@ export default function Payments() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  const { data: payments, isLoading: paymentsLoading } = useQuery({
+  const { data: payments, isLoading: paymentsLoading } = useQuery<any[]>({
     queryKey: ["/api/payments"],
     enabled: isAuthenticated,
     retry: false,
   });
 
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery<{
+    role: string;
+  }>({
     queryKey: ["/api/users/stats"],
     enabled: isAuthenticated,
     retry: false,

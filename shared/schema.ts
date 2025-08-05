@@ -122,6 +122,17 @@ export const messages = pgTable("messages", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Conversations table for tracking last message times
+export const conversations = pgTable("conversations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  taskId: varchar("task_id").notNull().references(() => tasks.id),
+  participant1Id: varchar("participant1_id").notNull().references(() => users.id),
+  participant2Id: varchar("participant2_id").notNull().references(() => users.id),
+  lastMessageTime: timestamp("last_message_time").defaultNow(),
+  lastMessageContent: text("last_message_content"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Payments table
 export const payments = pgTable("payments", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -222,6 +233,21 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   }),
 }));
 
+export const conversationsRelations = relations(conversations, ({ one }) => ({
+  task: one(tasks, {
+    fields: [conversations.taskId],
+    references: [tasks.id],
+  }),
+  participant1: one(users, {
+    fields: [conversations.participant1Id],
+    references: [users.id],
+  }),
+  participant2: one(users, {
+    fields: [conversations.participant2Id],
+    references: [users.id],
+  }),
+}));
+
 export const paymentsRelations = relations(payments, ({ one }) => ({
   task: one(tasks, {
     fields: [payments.taskId],
@@ -288,6 +314,13 @@ export const upsertUserSchema = createInsertSchema(users).pick({
   firstName: true,
   lastName: true,
   profileImageUrl: true,
+}).extend({
+  role: z.enum(["client", "freelancer"]).optional(),
+});
+
+export const insertConversationSchema = createInsertSchema(conversations).omit({
+  id: true,
+  createdAt: true,
 });
 
 export const insertTaskSchema = createInsertSchema(tasks).omit({
@@ -340,6 +373,8 @@ export type Bid = typeof bids.$inferSelect;
 export type InsertBid = z.infer<typeof insertBidSchema>;
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type Conversation = typeof conversations.$inferSelect;
+export type InsertConversation = z.infer<typeof insertConversationSchema>;
 export type Payment = typeof payments.$inferSelect;
 export type InsertPayment = z.infer<typeof insertPaymentSchema>;
 export type Review = typeof reviews.$inferSelect;

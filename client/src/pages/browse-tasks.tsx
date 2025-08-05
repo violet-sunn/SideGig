@@ -43,7 +43,7 @@ export default function BrowseTasks() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  const { data: tasks, isLoading: tasksLoading, error } = useQuery({
+  const { data: tasks, isLoading: tasksLoading, error } = useQuery<any[]>({
     queryKey: ["/api/tasks/available"],
     enabled: isAuthenticated,
     retry: false,

@@ -37,13 +37,13 @@ export default function Messages() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  const { data: conversations, isLoading: conversationsLoading } = useQuery({
+  const { data: conversations, isLoading: conversationsLoading } = useQuery<any[]>({
     queryKey: ["/api/conversations"],
     enabled: isAuthenticated,
     retry: false,
   });
 
-  const { data: messages, isLoading: messagesLoading } = useQuery({
+  const { data: messages, isLoading: messagesLoading } = useQuery<any[]>({
     queryKey: ["/api/messages/task", selectedTaskId],
     enabled: isAuthenticated && !!selectedTaskId,
     retry: false,
@@ -280,7 +280,7 @@ export default function Messages() {
                           })}
                         </p>
                       </div>
-                      {message.senderId === user?.id && (
+                      {message.senderId === user?.id && user && (
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={user.profileImageUrl || ""} />
                           <AvatarFallback className="text-xs">

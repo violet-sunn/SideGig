@@ -54,13 +54,13 @@ export default function Disputes() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  const { data: disputes, isLoading: disputesLoading } = useQuery({
+  const { data: disputes, isLoading: disputesLoading } = useQuery<any[]>({
     queryKey: ["/api/disputes"],
     enabled: isAuthenticated,
     retry: false,
   });
 
-  const { data: activeTasks, isLoading: tasksLoading } = useQuery({
+  const { data: activeTasks, isLoading: tasksLoading } = useQuery<any[]>({
     queryKey: ["/api/tasks/my"],
     enabled: isAuthenticated,
     retry: false,

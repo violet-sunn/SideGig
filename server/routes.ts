@@ -39,10 +39,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updatedUser = await storage.upsertUser({
-        ...user,
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profileImageUrl: user.profileImageUrl,
         role,
-        skills,
-        bio,
       });
 
       res.json(updatedUser);

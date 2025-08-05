@@ -43,13 +43,13 @@ export default function Reviews() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  const { data: reviews, isLoading: reviewsLoading } = useQuery({
+  const { data: reviews, isLoading: reviewsLoading } = useQuery<any[]>({
     queryKey: ["/api/reviews"],
     enabled: isAuthenticated,
     retry: false,
   });
 
-  const { data: completedTasks, isLoading: tasksLoading } = useQuery({
+  const { data: completedTasks, isLoading: tasksLoading } = useQuery<any[]>({
     queryKey: ["/api/tasks/completed"],
     enabled: isAuthenticated,
     retry: false,

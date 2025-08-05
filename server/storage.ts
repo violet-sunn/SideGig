@@ -3,6 +3,7 @@ import {
   tasks,
   bids,
   messages,
+  conversations,
   payments,
   reviews,
   disputes,
@@ -14,6 +15,8 @@ import {
   type InsertBid,
   type Message,
   type InsertMessage,
+  type Conversation,
+  type InsertConversation,
   type Payment,
   type InsertPayment,
   type Review,
@@ -112,11 +115,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAvailableTasks(freelancerId?: string): Promise<Task[]> {
-    let query = db
-      .select()
-      .from(tasks)
-      .where(eq(tasks.status, "open"));
-
     if (freelancerId) {
       // Exclude tasks where freelancer already bid
       const userBids = await db
@@ -127,11 +125,19 @@ export class DatabaseStorage implements IStorage {
       const bidTaskIds = userBids.map(bid => bid.taskId);
       
       if (bidTaskIds.length > 0) {
-        query = query.where(sql`${tasks.id} NOT IN (${sql.join(bidTaskIds.map(id => sql`${id}`), sql`, `)})`);
+        return await db
+          .select()
+          .from(tasks)
+          .where(sql`${tasks.status} = 'open' AND ${tasks.id} NOT IN (${sql.join(bidTaskIds.map(id => sql`${id}`), sql`, `)})`)
+          .orderBy(desc(tasks.createdAt));
       }
     }
 
-    return await query.orderBy(desc(tasks.createdAt));
+    return await db
+      .select()
+      .from(tasks)
+      .where(eq(tasks.status, "open"))
+      .orderBy(desc(tasks.createdAt));
   }
 
   async getTask(id: string): Promise<Task | undefined> {
@@ -170,7 +176,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(bids.createdAt));
   }
 
-  async updateBidStatus(id: string, status: string): Promise<void> {
+  async updateBidStatus(id: string, status: "pending" | "accepted" | "rejected" | "counter_offer"): Promise<void> {
     await db.update(bids).set({ status, updatedAt: new Date() }).where(eq(bids.id, id));
   }
 
@@ -189,34 +195,65 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getConversations(userId: string): Promise<any[]> {
-    const conversations = await db
+    // Get unique task IDs where user has messages
+    const userMessages = await db
       .select({
         taskId: messages.taskId,
-        lastMessage: sql<string>`(
-          SELECT content FROM ${messages} 
-          WHERE task_id = ${messages.taskId} 
-          ORDER BY created_at DESC 
-          LIMIT 1
-        )`,
-        lastMessageTime: sql<Date>`(
-          SELECT created_at FROM ${messages} 
-          WHERE task_id = ${messages.taskId} 
-          ORDER BY created_at DESC 
-          LIMIT 1
-        )`,
-        unreadCount: sql<number>`(
-          SELECT COUNT(*) FROM ${messages} 
-          WHERE task_id = ${messages.taskId} 
-          AND receiver_id = ${userId} 
-          AND is_read = false
-        )`,
       })
       .from(messages)
       .where(or(eq(messages.senderId, userId), eq(messages.receiverId, userId)))
-      .groupBy(messages.taskId)
-      .orderBy(sql`last_message_time DESC`);
+      .groupBy(messages.taskId);
 
-    return conversations;
+    // Get conversation details for each task
+    const conversationsWithDetails = await Promise.all(
+      userMessages.map(async ({ taskId }) => {
+        // Get last message for this task
+        const [lastMessage] = await db
+          .select()
+          .from(messages)
+          .where(eq(messages.taskId, taskId))
+          .orderBy(desc(messages.createdAt))
+          .limit(1);
+
+        // Get unread count for this user
+        const [unreadResult] = await db
+          .select({ count: count() })
+          .from(messages)
+          .where(
+            and(
+              eq(messages.taskId, taskId),
+              eq(messages.receiverId, userId),
+              eq(messages.isRead, false)
+            )
+          );
+
+        // Get task details
+        const [task] = await db
+          .select()
+          .from(tasks)
+          .where(eq(tasks.id, taskId));
+
+        // Get other user details
+        const otherUserId = lastMessage.senderId === userId ? lastMessage.receiverId : lastMessage.senderId;
+        const [otherUser] = await db
+          .select()
+          .from(users)
+          .where(eq(users.id, otherUserId));
+
+        return {
+          taskId,
+          lastMessage: lastMessage.content,
+          lastMessageTime: lastMessage.createdAt,
+          unreadCount: unreadResult.count,
+          task,
+          user: otherUser,
+        };
+      })
+    );
+
+    return conversationsWithDetails.sort((a, b) => 
+      new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime()
+    );
   }
 
   async markMessagesAsRead(taskId: string, userId: string): Promise<void> {

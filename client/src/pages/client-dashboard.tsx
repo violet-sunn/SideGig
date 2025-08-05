@@ -38,13 +38,18 @@ export default function ClientDashboard() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery<{
+    activeTasks: string;
+    completedTasks: string;
+    totalSpent: string;
+    averageRating: string;
+  }>({
     queryKey: ["/api/users/stats"],
     enabled: isAuthenticated,
     retry: false,
   });
 
-  const { data: recentTasks, isLoading: tasksLoading } = useQuery({
+  const { data: recentTasks, isLoading: tasksLoading } = useQuery<any[]>({
     queryKey: ["/api/tasks/my"],
     enabled: isAuthenticated,
     retry: false,
