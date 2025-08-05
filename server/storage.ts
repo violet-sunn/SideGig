@@ -68,6 +68,9 @@ export interface IStorage {
   
   // Statistics
   getUserStats(userId: string): Promise<any>;
+  
+  // Development helpers
+  getTestUsers(): Promise<User[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -381,6 +384,18 @@ export class DatabaseStorage implements IStorage {
         rating: user.rating || "0",
       };
     }
+  }
+
+  // Development helpers
+  async getTestUsers(): Promise<User[]> {
+    const testUsers = await db
+      .select()
+      .from(users)
+      .where(or(
+        eq(users.email, "client@test.com"),
+        eq(users.email, "freelancer@test.com")
+      ));
+    return testUsers;
   }
 }
 
