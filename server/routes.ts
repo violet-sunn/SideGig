@@ -365,9 +365,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/tasks/active", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
-      const tasks = await storage.getTasksByFreelancer(userId);
+      const allTasks = await storage.getTasksByFreelancer(userId);
       // Filter only active tasks (in_progress, in_review)
-      const activeTasks = tasks.filter(task => 
+      const activeTasks = allTasks.filter(task => 
         task.status === "in_progress" || task.status === "in_review"
       );
       res.json(activeTasks);
