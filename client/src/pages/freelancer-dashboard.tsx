@@ -193,10 +193,10 @@ export default function FreelancerDashboard() {
                     <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-500 mb-4">У вас пока нет активных проектов</p>
                     <Link href="/browse-tasks">
-                      <a className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors">
+                      <span className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
                         <Search className="h-4 w-4 mr-2" />
                         Найти задачи
-                      </a>
+                      </span>
                     </Link>
                   </div>
                 )}
@@ -209,7 +209,7 @@ export default function FreelancerDashboard() {
                 <CardTitle>Новые возможности</CardTitle>
               </CardHeader>
               <CardContent>
-                {tasksLoading ? (
+                {availableTasksLoading ? (
                   <div className="space-y-4">
                     {[1, 2].map((i) => (
                       <div key={i} className="animate-pulse">
@@ -239,9 +239,11 @@ export default function FreelancerDashboard() {
                               </Badge>
                             ))}
                           </div>
-                          <Button size="sm">
-                            Подать заявку
-                          </Button>
+                          <Link href="/browse-tasks">
+                            <span className="inline-flex items-center px-3 py-1 bg-primary text-white text-sm rounded hover:bg-blue-700 transition-colors cursor-pointer">
+                              Подать заявку
+                            </span>
+                          </Link>
                         </div>
                       </div>
                     ))}
