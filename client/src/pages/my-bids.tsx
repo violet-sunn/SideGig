@@ -59,12 +59,13 @@ export default function MyBids() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="flex h-screen bg-background">
       <Sidebar userRole={user.role as "freelancer"} />
       
-      <main className="flex-1 p-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-8">
+      <main className="flex-1 overflow-y-auto">
+        <div className="p-8">
+          <div className="max-w-6xl mx-auto">
+            <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Мои заявки</h1>
             <p className="text-gray-600">Отслеживайте статус ваших предложений по проектам</p>
           </div>
@@ -172,6 +173,7 @@ export default function MyBids() {
               ))}
             </div>
           )}
+          </div>
         </div>
       </main>
     </div>
