@@ -17,16 +17,22 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Search, Filter, SortAsc, SortDesc } from "lucide-react";
+import { useLocation } from "wouter";
 
 export default function BrowseTasks() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
+  const [location] = useLocation();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [budgetFilter, setBudgetFilter] = useState("all");
   const [sortBy, setSortBy] = useState("created_at");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+  // Get openBid parameter from URL
+  const urlParams = new URLSearchParams(location.split('?')[1] || '');
+  const openBidTaskId = urlParams.get('openBid');
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -224,7 +230,12 @@ export default function BrowseTasks() {
             ) : sortedTasks.length > 0 ? (
               <div className="grid gap-6">
                 {sortedTasks.map((task: any) => (
-                  <TaskCard key={task.id} task={task} showBidButton />
+                  <TaskCard 
+                    key={task.id} 
+                    task={task} 
+                    showBidButton 
+                    autoOpenBid={task.id === openBidTaskId}
+                  />
                 ))}
               </div>
             ) : (

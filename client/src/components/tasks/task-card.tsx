@@ -31,13 +31,14 @@ interface TaskCardProps {
   task: any;
   showBidButton?: boolean;
   showClientInfo?: boolean;
+  autoOpenBid?: boolean;
 }
 
-export default function TaskCard({ task, showBidButton = false, showClientInfo = true }: TaskCardProps) {
+export default function TaskCard({ task, showBidButton = false, showClientInfo = true, autoOpenBid = false }: TaskCardProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(autoOpenBid);
   const [responseType, setResponseType] = useState<"accept" | "propose">("accept");
   const [bidData, setBidData] = useState({
     amount: "",

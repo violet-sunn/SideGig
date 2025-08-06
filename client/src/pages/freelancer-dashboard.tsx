@@ -1,23 +1,12 @@
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import Sidebar from "@/components/layout/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { 
   Briefcase, 
   RussianRuble, 
@@ -29,159 +18,7 @@ import {
   TrendingUp
 } from "lucide-react";
 import { Link } from "wouter";
-import TaskCard from "@/components/tasks/task-card";
 
-// Quick Bid Button Component
-function QuickBidButton({ task }: { task: any }) {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [responseType, setResponseType] = useState<"accept" | "propose">("accept");
-  const [bidData, setBidData] = useState({
-    amount: task.budget || "",
-    deadline: "",
-    proposal: "",
-  });
-
-  const submitBidMutation = useMutation({
-    mutationFn: async (bidInfo: any) => {
-      const response = await apiRequest("POST", "/api/bids", bidInfo);
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Успешно!",
-        description: "Заявка отправлена",
-      });
-      setIsDialogOpen(false);
-      setBidData({ amount: task.budget || "", deadline: "", proposal: "" });
-      queryClient.invalidateQueries({ queryKey: ["/api/bids/my"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks/available"] });
-    },
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-      toast({
-        title: "Ошибка",
-        description: "Не удалось отправить заявку",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleSubmitBid = () => {
-    const bidInfo = {
-      taskId: task.id,
-      amount: Number(bidData.amount),
-      deadline: bidData.deadline,
-      proposal: responseType === "propose" ? bidData.proposal : `Готов выполнить задачу "${task.title}" на предложенных условиях.`,
-    };
-    
-    submitBidMutation.mutate(bidInfo);
-  };
-
-  return (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" className="text-xs px-2 py-1">
-          Подать заявку
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Подача заявки на задачу</DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-4">
-          <div>
-            <h4 className="font-medium mb-2">{task.title}</h4>
-            <p className="text-sm text-gray-600 mb-3">{task.description}</p>
-            <div className="flex items-center space-x-4 text-sm text-gray-500">
-              <span>Бюджет: ₽{Number(task.budget).toLocaleString()}</span>
-              {task.deadline && (
-                <span>Срок: {new Date(task.deadline).toLocaleDateString()}</span>
-              )}
-            </div>
-          </div>
-
-          <div className="flex space-x-2 mb-4">
-            <Button
-              type="button"
-              variant={responseType === "accept" ? "default" : "outline"}
-              onClick={() => setResponseType("accept")}
-              className="flex-1"
-            >
-              Откликнуться
-            </Button>
-            <Button
-              type="button"
-              variant={responseType === "propose" ? "default" : "outline"}
-              onClick={() => setResponseType("propose")}
-              className="flex-1"
-            >
-              Предложить свои условия
-            </Button>
-          </div>
-
-          {responseType === "propose" && (
-            <>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="amount">Ваша цена (₽)</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    value={bidData.amount}
-                    onChange={(e) => setBidData(prev => ({ ...prev, amount: e.target.value }))}
-                    placeholder="0"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="deadline">Срок выполнения</Label>
-                  <Input
-                    id="deadline"
-                    type="date"
-                    value={bidData.deadline}
-                    onChange={(e) => setBidData(prev => ({ ...prev, deadline: e.target.value }))}
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <Label htmlFor="proposal">Ваше предложение</Label>
-                <Textarea
-                  id="proposal"
-                  value={bidData.proposal}
-                  onChange={(e) => setBidData(prev => ({ ...prev, proposal: e.target.value }))}
-                  placeholder="Опишите ваш подход к выполнению задачи..."
-                  rows={3}
-                />
-              </div>
-            </>
-          )}
-
-          <Button 
-            onClick={handleSubmitBid}
-            disabled={submitBidMutation.isPending}
-            className="w-full"
-          >
-            {submitBidMutation.isPending ? "Отправка..." : "Отправить заявку"}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 export default function FreelancerDashboard() {
   const { toast } = useToast();
@@ -403,7 +240,11 @@ export default function FreelancerDashboard() {
                               </Badge>
                             ))}
                           </div>
-                          <QuickBidButton task={task} />
+                          <Link href={`/browse-tasks?openBid=${task.id}`}>
+                            <Button size="sm" className="text-xs px-2 py-1">
+                              Подать заявку
+                            </Button>
+                          </Link>
                         </div>
                       </div>
                     ))}
