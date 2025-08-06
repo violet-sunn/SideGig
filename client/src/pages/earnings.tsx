@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { buildUrl } from "@/lib/navigation";
 import Sidebar from "@/components/layout/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -201,7 +202,7 @@ export default function Earnings() {
                 <p className="text-gray-500 mb-6">
                   Завершите проекты чтобы начать зарабатывать
                 </p>
-                <Button>
+                <Button onClick={() => window.location.href = buildUrl('/browse-tasks')}>
                   Найти проекты
                 </Button>
               </CardContent>
