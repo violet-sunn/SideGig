@@ -11,6 +11,7 @@ import ClientDashboard from "@/pages/client-dashboard";
 import FreelancerDashboard from "@/pages/freelancer-dashboard";
 import CreateTask from "@/pages/create-task";
 import BrowseTasks from "@/pages/browse-tasks";
+import TaskDetail from "@/pages/task-detail";
 import Tasks from "@/pages/tasks";
 import Messages from "@/pages/messages";
 import Payments from "@/pages/payments";
@@ -44,6 +45,7 @@ function Router() {
           <Route path="/" component={user?.role === "client" ? ClientDashboard : FreelancerDashboard} />
           <Route path="/create-task" component={CreateTask} />
           <Route path="/browse-tasks" component={BrowseTasks} />
+          <Route path="/task/:id" component={TaskDetail} />
           <Route path="/tasks" component={Tasks} />
           <Route path="/my-bids" component={MyBids} />
           <Route path="/active-projects" component={ActiveProjects} />
