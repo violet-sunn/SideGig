@@ -26,7 +26,7 @@ function Router() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
       </div>
     );
@@ -64,9 +64,11 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Router />
-        <RoleSwitcher />
+        <div className="relative">
+          <Toaster />
+          <Router />
+          <RoleSwitcher />
+        </div>
       </TooltipProvider>
     </QueryClientProvider>
   );
