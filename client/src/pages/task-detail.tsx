@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { useLocation, useParams } from "wouter";
+import { useParams } from "wouter";
+import { useNavigate } from "@/hooks/useNavigate";
 import { useState } from "react";
 
 import Sidebar from "@/components/layout/sidebar";
@@ -62,7 +63,7 @@ interface Bid {
 export default function TaskDetail() {
   const { user } = useAuth();
   const params = useParams();
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   
   const [bidAmount, setBidAmount] = useState("");
@@ -157,7 +158,7 @@ export default function TaskDetail() {
           <div className="p-8">
             <div className="max-w-4xl mx-auto text-center">
               <h1 className="text-2xl font-bold mb-4">Задача не найдена</h1>
-              <Button onClick={() => setLocation("/browse-tasks")}>
+              <Button onClick={() => navigate("/browse-tasks")}>
                 Вернуться к задачам
               </Button>
             </div>
@@ -180,7 +181,7 @@ export default function TaskDetail() {
             <div className="mb-8">
               <Button 
                 variant="ghost" 
-                onClick={() => setLocation("/browse-tasks")}
+                onClick={() => navigate("/browse-tasks")}
                 className="mb-4"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
