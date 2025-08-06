@@ -68,25 +68,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User profile routes
-  app.post("/api/users/profile", isAuthenticated, async (req: any, res) => {
+  app.patch("/api/profile", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const { role, skills, bio } = req.body;
+      const userId = getEffectiveUserId(req);
+      const { firstName, lastName, email, role, skills, bio } = req.body;
       
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      const updatedUser = await storage.upsertUser({
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        profileImageUrl: user.profileImageUrl,
-        role,
-      });
+      const profileData: any = {};
+      if (firstName !== undefined) profileData.firstName = firstName;
+      if (lastName !== undefined) profileData.lastName = lastName;
+      if (email !== undefined) profileData.email = email;
+      if (role !== undefined) profileData.role = role;
+      if (skills !== undefined) profileData.skills = skills ? skills.split(',').map((s: string) => s.trim()) : [];
+      if (bio !== undefined) profileData.bio = bio;
 
+      const updatedUser = await storage.updateUserProfile(userId, profileData);
       res.json(updatedUser);
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -105,10 +105,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Task routes
+  app.get("/api/profile", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getEffectiveUserId(req);
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      res.status(500).json({ message: "Failed to fetch profile" });
+    }
+  });
+
+  // Task routes  
   app.post("/api/tasks", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getEffectiveUserId(req);
       const taskData = insertTaskSchema.parse({
         ...req.body,
         clientId: userId,
@@ -181,13 +195,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Task creation route
+  app.post("/api/tasks", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getEffectiveUserId(req);
+      const taskData = insertTaskSchema.parse({
+        ...req.body,
+        clientId: userId,
+      });
+
+      const task = await storage.createTask(taskData);
+      res.json(task);
+    } catch (error) {
+      console.error("Error creating task:", error);
+      res.status(500).json({ message: "Failed to create task" });
+    }
+  });
+
   // Bid routes
   app.post("/api/bids", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getEffectiveUserId(req);
+      // Convert deadline string to Date
       const bidData = insertBidSchema.parse({
         ...req.body,
         freelancerId: userId,
+        deadline: new Date(req.body.deadline),
       });
 
       const bid = await storage.createBid(bidData);
@@ -248,7 +281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Message routes
   app.post("/api/messages", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getEffectiveUserId(req);
       const messageData = insertMessageSchema.parse({
         ...req.body,
         senderId: userId,
@@ -275,7 +308,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/conversations", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getEffectiveUserId(req);
       const conversations = await storage.getConversations(userId);
       res.json(conversations);
     } catch (error) {
@@ -286,7 +319,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/messages/read/:taskId", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getEffectiveUserId(req);
       const { taskId } = req.params;
       
       await storage.markMessagesAsRead(taskId, userId);
@@ -300,7 +333,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Payment routes
   app.get("/api/payments", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getEffectiveUserId(req);
       const payments = await storage.getPaymentsByUser(userId);
       res.json(payments);
     } catch (error) {
@@ -325,7 +358,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Review routes
   app.post("/api/reviews", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getEffectiveUserId(req);
       const reviewData = insertReviewSchema.parse({
         ...req.body,
         reviewerId: userId,
@@ -341,7 +374,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/reviews", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getEffectiveUserId(req);
       const reviews = await storage.getReviewsByUser(userId);
       res.json(reviews);
     } catch (error) {
@@ -353,7 +386,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dispute routes
   app.post("/api/disputes", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getEffectiveUserId(req);
       const disputeData = insertDisputeSchema.parse({
         ...req.body,
         initiatorId: userId,
@@ -369,7 +402,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/disputes", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getEffectiveUserId(req);
       const disputes = await storage.getDisputesByUser(userId);
       res.json(disputes);
     } catch (error) {
