@@ -33,13 +33,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Development mode: allow impersonation for testing
       const impersonateUserId = req.query.impersonate as string;
       if (process.env.NODE_ENV === "development" && impersonateUserId) {
+        console.log(`Impersonating user: ${impersonateUserId}`);
         const impersonatedUser = await storage.getUser(impersonateUserId);
         if (impersonatedUser) {
+          console.log(`Found impersonated user: ${impersonatedUser.firstName} ${impersonatedUser.lastName}, role: ${impersonatedUser.role}`);
           return res.json(impersonatedUser);
+        } else {
+          console.log(`Impersonated user ${impersonateUserId} not found`);
         }
       }
       
       const user = await storage.getUser(userId);
+      console.log(`Regular user: ${user?.firstName} ${user?.lastName}, role: ${user?.role}`);
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);

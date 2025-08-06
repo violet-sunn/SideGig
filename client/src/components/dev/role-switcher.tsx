@@ -27,6 +27,9 @@ export default function RoleSwitcher() {
   }, []);
 
   const switchToUser = (userId: string | null) => {
+    // Clear all queries before switching
+    queryClient.clear();
+    
     const url = new URL(window.location.href);
     
     if (userId) {
