@@ -55,7 +55,7 @@ export default function FreelancerDashboard() {
     retry: false,
   });
 
-  const { data: availableTasks, isLoading: tasksLoading } = useQuery<any[]>({
+  const { data: availableTasks, isLoading: availableTasksLoading } = useQuery<any[]>({
     queryKey: ["/api/tasks/available"],
     enabled: isAuthenticated,
     retry: false,
