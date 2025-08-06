@@ -206,7 +206,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/bids/my", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getEffectiveUserId(req);
       const bids = await storage.getBidsByFreelancer(userId);
       res.json(bids);
     } catch (error) {
@@ -358,6 +358,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching disputes:", error);
       res.status(500).json({ message: "Failed to fetch disputes" });
+    }
+  });
+
+  // Active projects route for freelancers
+  app.get("/api/tasks/active", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getEffectiveUserId(req);
+      const tasks = await storage.getTasksByFreelancer(userId);
+      // Filter only active tasks (in_progress, in_review)
+      const activeTasks = tasks.filter(task => 
+        task.status === "in_progress" || task.status === "in_review"
+      );
+      res.json(activeTasks);
+    } catch (error) {
+      console.error("Error fetching active projects:", error);
+      res.status(500).json({ message: "Failed to fetch active projects" });
+    }
+  });
+
+  // Earnings routes for freelancers
+  app.get("/api/earnings", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getEffectiveUserId(req);
+      const payments = await storage.getPaymentsByUser(userId);
+      // Transform payments to earnings format
+      const earnings = payments.map(payment => ({
+        id: payment.id,
+        taskId: payment.taskId,
+        amount: payment.amount,
+        status: payment.status,
+        type: "payment",
+        createdAt: payment.createdAt,
+      }));
+      res.json(earnings);
+    } catch (error) {
+      console.error("Error fetching earnings:", error);
+      res.status(500).json({ message: "Failed to fetch earnings" });
+    }
+  });
+
+  app.get("/api/earnings/stats", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getEffectiveUserId(req);
+      const payments = await storage.getPaymentsByUser(userId);
+      
+      const totalEarnings = payments
+        .filter(p => p.status === "released")
+        .reduce((sum, p) => sum + p.amount, 0);
+      
+      const thisMonth = payments
+        .filter(p => {
+          const paymentDate = new Date(p.createdAt);
+          const now = new Date();
+          return paymentDate.getMonth() === now.getMonth() && 
+                 paymentDate.getFullYear() === now.getFullYear() &&
+                 p.status === "released";
+        })
+        .reduce((sum, p) => sum + p.amount, 0);
+      
+      const pending = payments
+        .filter(p => p.status === "escrowed")
+        .reduce((sum, p) => sum + p.amount, 0);
+      
+      const completed = totalEarnings;
+      
+      res.json({
+        totalEarnings,
+        thisMonth,
+        pending,
+        completed
+      });
+    } catch (error) {
+      console.error("Error fetching earnings stats:", error);
+      res.status(500).json({ message: "Failed to fetch earnings stats" });
     }
   });
 

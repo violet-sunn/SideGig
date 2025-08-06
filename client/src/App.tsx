@@ -17,6 +17,9 @@ import Payments from "@/pages/payments";
 import Reviews from "@/pages/reviews";
 import Disputes from "@/pages/disputes";
 import Profile from "@/pages/profile";
+import MyBids from "@/pages/my-bids";
+import ActiveProjects from "@/pages/active-projects";
+import Earnings from "@/pages/earnings";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -42,6 +45,9 @@ function Router() {
           <Route path="/create-task" component={CreateTask} />
           <Route path="/browse-tasks" component={BrowseTasks} />
           <Route path="/tasks" component={Tasks} />
+          <Route path="/my-bids" component={MyBids} />
+          <Route path="/active-projects" component={ActiveProjects} />
+          <Route path="/earnings" component={Earnings} />
           <Route path="/messages" component={Messages} />
           <Route path="/payments" component={Payments} />
           <Route path="/reviews" component={Reviews} />
