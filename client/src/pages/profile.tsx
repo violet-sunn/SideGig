@@ -236,17 +236,7 @@ export default function Profile() {
 
                       {userRole === "freelancer" && (
                         <>
-                          <div>
-                            <Label htmlFor="hourlyRate">Почасовая ставка (₽)</Label>
-                            <Input
-                              id="hourlyRate"
-                              type="number"
-                              value={profileData.hourlyRate}
-                              onChange={(e) => setProfileData({ ...profileData, hourlyRate: e.target.value })}
-                              disabled={!isEditing}
-                              placeholder="1500"
-                            />
-                          </div>
+                          
 
                           <div>
                             <Label htmlFor="skills">Навыки</Label>
