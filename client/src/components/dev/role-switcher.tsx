@@ -32,14 +32,28 @@ export default function RoleSwitcher() {
     
     const url = new URL(window.location.href);
     
+    // Preserve other parameters like openBid
+    const otherParams = new URLSearchParams();
+    for (const [key, value] of url.searchParams.entries()) {
+      if (key !== 'impersonate') {
+        otherParams.set(key, value);
+      }
+    }
+    
+    // Create new URL with preserved parameters
+    const newUrl = new URL(url.pathname, url.origin);
+    
     if (userId) {
-      url.searchParams.set('impersonate', userId);
-    } else {
-      url.searchParams.delete('impersonate');
+      newUrl.searchParams.set('impersonate', userId);
+    }
+    
+    // Add back other parameters
+    for (const [key, value] of otherParams.entries()) {
+      newUrl.searchParams.set(key, value);
     }
     
     // Use full page reload to ensure clean state
-    window.location.href = url.toString();
+    window.location.href = newUrl.toString();
   };
 
   const getInitials = (firstName?: string | null, lastName?: string | null) => {
