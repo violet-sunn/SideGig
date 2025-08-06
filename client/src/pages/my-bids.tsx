@@ -95,7 +95,7 @@ export default function MyBids() {
                 <p className="text-gray-500 mb-6">
                   Начните подавать заявки на интересные проекты
                 </p>
-                <Button onClick={() => navigateTo("/browse-tasks", setLocation)}>
+                <Button onClick={() => setLocation("/browse-tasks")}>
                   Найти проекты
                 </Button>
               </CardContent>
@@ -161,7 +161,7 @@ export default function MyBids() {
                       </div>
                       
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => navigateTo(`/task/${bid.taskId}`, setLocation)}>
+                        <Button variant="outline" size="sm" onClick={() => setLocation(`/task/${bid.taskId}`)}>
                           Подробности
                         </Button>
                         {bid.status === "pending" && (

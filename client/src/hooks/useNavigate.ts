@@ -7,5 +7,12 @@ import { navigateTo } from "@/lib/navigation";
 export function useNavigate() {
   const [, setLocation] = useLocation();
   
-  return (path: string) => navigateTo(path, setLocation);
+  return (path: string) => {
+    if (process.env.NODE_ENV === 'development') {
+      // Preserve impersonation in development
+      navigateTo(path);
+    } else {
+      setLocation(path);
+    }
+  };
 }
