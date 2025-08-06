@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -38,13 +38,20 @@ export default function TaskCard({ task, showBidButton = false, showClientInfo =
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  const [isDialogOpen, setIsDialogOpen] = useState(autoOpenBid);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [responseType, setResponseType] = useState<"accept" | "propose">("accept");
   const [bidData, setBidData] = useState({
     amount: "",
     deadline: "",
     proposal: "",
   });
+
+  // Auto-open dialog when autoOpenBid is true
+  useEffect(() => {
+    if (autoOpenBid) {
+      setIsDialogOpen(true);
+    }
+  }, [autoOpenBid]);
 
   const submitBidMutation = useMutation({
     mutationFn: async (bidInfo: any) => {
