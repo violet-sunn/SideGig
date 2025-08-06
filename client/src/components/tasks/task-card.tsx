@@ -48,10 +48,12 @@ export default function TaskCard({ task, showBidButton = false, showClientInfo =
 
   // Auto-open dialog when autoOpenBid is true
   useEffect(() => {
+    console.log('TaskCard autoOpenBid:', autoOpenBid, 'for task:', task.id);
     if (autoOpenBid) {
+      console.log('Opening bid dialog for task:', task.id);
       setIsDialogOpen(true);
     }
-  }, [autoOpenBid]);
+  }, [autoOpenBid, task.id]);
 
   const submitBidMutation = useMutation({
     mutationFn: async (bidInfo: any) => {

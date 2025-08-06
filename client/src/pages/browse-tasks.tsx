@@ -31,8 +31,15 @@ export default function BrowseTasks() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   // Get openBid parameter from URL
-  const urlParams = new URLSearchParams(location.split('?')[1] || '');
+  const urlParams = new URLSearchParams(window.location.search);
   const openBidTaskId = urlParams.get('openBid');
+  
+  // Debug logging
+  useEffect(() => {
+    console.log('URL location:', location);
+    console.log('window.location.search:', window.location.search);
+    console.log('openBidTaskId:', openBidTaskId);
+  }, [location, openBidTaskId]);
 
   // Redirect to login if not authenticated
   useEffect(() => {
