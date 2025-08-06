@@ -18,6 +18,7 @@ import {
   TrendingUp
 } from "lucide-react";
 import { Link } from "wouter";
+import { buildUrl } from "@/lib/navigation";
 
 
 export default function FreelancerDashboard() {
@@ -240,7 +241,7 @@ export default function FreelancerDashboard() {
                               </Badge>
                             ))}
                           </div>
-                          <Link href={`/browse-tasks?openBid=${task.id}`}>
+                          <Link href={buildUrl(`/browse-tasks?openBid=${task.id}`)}>
                             <Button size="sm" className="text-xs px-2 py-1">
                               Подать заявку
                             </Button>

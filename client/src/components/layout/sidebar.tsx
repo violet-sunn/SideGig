@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
+import { buildUrl } from "@/lib/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useImpersonation } from "@/hooks/useImpersonation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -106,7 +107,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
             
             return (
               <li key={item.href}>
-                <Link href={preserveImpersonationInUrl(item.href)}>
+                <Link href={buildUrl(item.href)}>
                   <span className={cn(
                     "flex items-center p-3 rounded-lg transition-colors cursor-pointer",
                     isActive 

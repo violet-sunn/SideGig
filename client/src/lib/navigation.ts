@@ -1,20 +1,24 @@
-/**
- * Navigation utility that preserves impersonation parameters during development
- */
-export function navigateTo(path: string, setLocation: (path: string) => void) {
-  // In development mode, preserve the impersonate parameter
-  if (import.meta.env.DEV) {
-    const urlParams = new URLSearchParams(window.location.search);
-    const impersonateId = urlParams.get('impersonate');
-    
-    if (impersonateId) {
-      const separator = path.includes('?') ? '&' : '?';
-      const newPath = `${path}${separator}impersonate=${impersonateId}`;
-      setLocation(newPath);
-      return;
-    }
+// Navigation utilities that preserve impersonation state
+
+export function buildUrl(path: string): string {
+  const url = new URL(path, window.location.origin);
+  
+  // Check if we're currently impersonating
+  const currentParams = new URLSearchParams(window.location.search);
+  const impersonateParam = currentParams.get('impersonate');
+  
+  if (impersonateParam) {
+    url.searchParams.set('impersonate', impersonateParam);
   }
   
-  // Normal navigation
-  setLocation(path);
+  return url.pathname + url.search;
+}
+
+export function getCurrentImpersonation(): string | null {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('impersonate');
+}
+
+export function navigateTo(path: string) {
+  window.location.href = buildUrl(path);
 }
