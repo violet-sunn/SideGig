@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
+import { navigateTo } from "@/lib/navigation";
 import Sidebar from "@/components/layout/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -94,7 +95,7 @@ export default function MyBids() {
                 <p className="text-gray-500 mb-6">
                   Начните подавать заявки на интересные проекты
                 </p>
-                <Button onClick={() => setLocation("/browse-tasks")}>
+                <Button onClick={() => navigateTo("/browse-tasks", setLocation)}>
                   Найти проекты
                 </Button>
               </CardContent>
@@ -160,7 +161,7 @@ export default function MyBids() {
                       </div>
                       
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => setLocation(`/task/${bid.taskId}`)}>
+                        <Button variant="outline" size="sm" onClick={() => navigateTo(`/task/${bid.taskId}`, setLocation)}>
                           Подробности
                         </Button>
                         {bid.status === "pending" && (

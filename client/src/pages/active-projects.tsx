@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
+import { navigateTo } from "@/lib/navigation";
 import Sidebar from "@/components/layout/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -93,7 +94,7 @@ export default function ActiveProjects() {
                 <p className="text-gray-500 mb-6">
                   Подавайте заявки на интересные проекты чтобы начать работу
                 </p>
-                <Button onClick={() => setLocation("/browse-tasks")}>
+                <Button onClick={() => navigateTo("/browse-tasks", setLocation)}>
                   Найти проекты
                 </Button>
               </CardContent>
@@ -161,11 +162,11 @@ export default function ActiveProjects() {
                       </div>
                       
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => setLocation(`/messages?project=${project.id}`)}>
+                        <Button variant="outline" size="sm" onClick={() => navigateTo(`/messages?project=${project.id}`, setLocation)}>
                           <MessageSquare className="h-4 w-4 mr-1" />
                           Чат
                         </Button>
-                        <Button size="sm" onClick={() => setLocation(`/task/${project.id}`)}>
+                        <Button size="sm" onClick={() => navigateTo(`/task/${project.id}`, setLocation)}>
                           Подробности
                         </Button>
                       </div>
