@@ -24,7 +24,7 @@ export default function Tasks() {
   const { isAuthenticated, isLoading, user } = useAuth();
   
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("created_at");
 
   // Redirect to login if not authenticated
@@ -67,7 +67,7 @@ export default function Tasks() {
   const filteredTasks = tasks?.filter((task: any) => {
     const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          task.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = !statusFilter || statusFilter === "all" || task.status === statusFilter;
+    const matchesStatus = statusFilter === "all" || task.status === statusFilter;
     return matchesSearch && matchesStatus;
   }) || [];
 

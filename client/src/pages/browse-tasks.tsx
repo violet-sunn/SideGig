@@ -23,8 +23,8 @@ export default function BrowseTasks() {
   const { isAuthenticated, isLoading } = useAuth();
   
   const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
-  const [budgetFilter, setBudgetFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [budgetFilter, setBudgetFilter] = useState("all");
   const [sortBy, setSortBy] = useState("created_at");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
@@ -67,8 +67,8 @@ export default function BrowseTasks() {
   const filteredTasks = tasks?.filter((task: any) => {
     const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          task.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !categoryFilter || task.category === categoryFilter;
-    const matchesBudget = !budgetFilter || 
+    const matchesCategory = categoryFilter === "all" || task.category === categoryFilter;
+    const matchesBudget = budgetFilter === "all" || 
                          (budgetFilter === "low" && task.budget < 25000) ||
                          (budgetFilter === "medium" && task.budget >= 25000 && task.budget <= 100000) ||
                          (budgetFilter === "high" && task.budget > 100000);
@@ -135,7 +135,7 @@ export default function BrowseTasks() {
                     <SelectValue placeholder="Все категории" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Все категории</SelectItem>
+                    <SelectItem value="all">Все категории</SelectItem>
                     {categories.map((category) => (
                       <SelectItem key={category} value={category}>
                         {category}
@@ -149,7 +149,7 @@ export default function BrowseTasks() {
                     <SelectValue placeholder="Бюджет" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Любой бюджет</SelectItem>
+                    <SelectItem value="all">Любой бюджет</SelectItem>
                     <SelectItem value="low">До ₽25,000</SelectItem>
                     <SelectItem value="medium">₽25,000 - ₽100,000</SelectItem>
                     <SelectItem value="high">Свыше ₽100,000</SelectItem>
@@ -173,7 +173,7 @@ export default function BrowseTasks() {
                 </div>
               </div>
 
-              {(searchTerm || categoryFilter || budgetFilter) && (
+              {(searchTerm || (categoryFilter !== "all") || (budgetFilter !== "all")) && (
                 <div className="flex items-center space-x-2 mt-4">
                   <span className="text-sm text-gray-500">Активные фильтры:</span>
                   {searchTerm && (
@@ -182,18 +182,18 @@ export default function BrowseTasks() {
                       <button onClick={() => setSearchTerm("")} className="ml-1">×</button>
                     </Badge>
                   )}
-                  {categoryFilter && (
+                  {categoryFilter !== "all" && (
                     <Badge variant="secondary">
                       {categoryFilter}
-                      <button onClick={() => setCategoryFilter("")} className="ml-1">×</button>
+                      <button onClick={() => setCategoryFilter("all")} className="ml-1">×</button>
                     </Badge>
                   )}
-                  {budgetFilter && (
+                  {budgetFilter !== "all" && (
                     <Badge variant="secondary">
                       Бюджет: {budgetFilter === "low" ? "До ₽25,000" : 
                                budgetFilter === "medium" ? "₽25,000 - ₽100,000" : 
                                "Свыше ₽100,000"}
-                      <button onClick={() => setBudgetFilter("")} className="ml-1">×</button>
+                      <button onClick={() => setBudgetFilter("all")} className="ml-1">×</button>
                     </Badge>
                   )}
                 </div>
