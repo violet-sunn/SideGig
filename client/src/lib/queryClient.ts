@@ -29,7 +29,17 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
+    const [url, params] = queryKey as [string, any?];
+    let fetchUrl = url;
+    
+    // Add impersonation parameter for development
+    if (params?.impersonate && import.meta.env.DEV) {
+      const urlObj = new URL(url, window.location.origin);
+      urlObj.searchParams.set('impersonate', params.impersonate);
+      fetchUrl = urlObj.toString();
+    }
+    
+    const res = await fetch(fetchUrl, {
       credentials: "include",
     });
 

@@ -11,6 +11,16 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 
+// Development middleware for user impersonation
+function getEffectiveUserId(req: any): string {
+  // In development, allow impersonation via query parameter
+  const impersonateId = req.query.impersonate as string;
+  if (process.env.NODE_ENV === 'development' && impersonateId) {
+    return impersonateId;
+  }
+  return req.user.claims.sub;
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
@@ -81,7 +91,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/users/stats", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getEffectiveUserId(req);
       const stats = await storage.getUserStats(userId);
       res.json(stats);
     } catch (error) {
@@ -109,7 +119,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/tasks/my", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getEffectiveUserId(req);
       const user = await storage.getUser(userId);
       
       let tasks;
@@ -128,7 +138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/tasks/available", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getEffectiveUserId(req);
       const tasks = await storage.getAvailableTasks(userId);
       res.json(tasks);
     } catch (error) {

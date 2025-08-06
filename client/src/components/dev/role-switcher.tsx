@@ -41,6 +41,11 @@ export default function RoleSwitcher() {
     
     // Invalidate all queries to refresh with new user context
     queryClient.invalidateQueries();
+    
+    // Small delay to ensure URL change is processed
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   };
 
   const getInitials = (firstName?: string | null, lastName?: string | null) => {
