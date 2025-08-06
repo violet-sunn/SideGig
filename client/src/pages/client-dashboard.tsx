@@ -15,7 +15,10 @@ import {
   Users,
   MessageSquare,
   CreditCard,
-  BarChart3
+  BarChart3,
+  UserCheck,
+  Calendar,
+  DollarSign
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -51,6 +54,13 @@ export default function ClientDashboard() {
 
   const { data: recentTasks, isLoading: tasksLoading } = useQuery<any[]>({
     queryKey: ["/api/tasks/my"],
+    enabled: isAuthenticated,
+    retry: false,
+  });
+
+  // Fetch pending bids for client review
+  const { data: pendingBids, isLoading: bidsLoading } = useQuery<any[]>({
+    queryKey: ["/api/bids/pending"],
     enabled: isAuthenticated,
     retry: false,
   });
@@ -213,51 +223,62 @@ export default function ClientDashboard() {
               </CardContent>
             </Card>
 
-            {/* Quick Actions */}
+            {/* New Opportunities - Pending Bids */}
             <Card>
               <CardHeader>
-                <CardTitle>Быстрые действия</CardTitle>
+                <CardTitle>Новые возможности</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <Link href="/create-task">
-                  <span className="flex items-center p-4 bg-primary/5 rounded-lg hover:bg-primary/10 transition-colors cursor-pointer">
-                    <Plus className="h-6 w-6 text-primary mr-3" />
-                    <div>
-                      <h4 className="font-medium text-gray-900">Создать задачу</h4>
-                      <p className="text-sm text-gray-600">Опубликуйте новую задачу для исполнителей</p>
-                    </div>
-                  </span>
-                </Link>
-
-                <Link href="/tasks">
-                  <span className="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors cursor-pointer">
-                    <ListTodo className="h-6 w-6 text-green-600 mr-3" />
-                    <div>
-                      <h4 className="font-medium text-gray-900">Мои задачи</h4>
-                      <p className="text-sm text-gray-600">Управление задачами и заявками</p>
-                    </div>
-                  </span>
-                </Link>
-
-                <Link href="/messages">
-                  <span className="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer">
-                    <MessageSquare className="h-6 w-6 text-blue-600 mr-3" />
-                    <div>
-                      <h4 className="font-medium text-gray-900">Сообщения</h4>
-                      <p className="text-sm text-gray-600">Общение с исполнителями</p>
-                    </div>
-                  </span>
-                </Link>
-
-                <Link href="/payments">
-                  <span className="flex items-center p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors cursor-pointer">
-                    <CreditCard className="h-6 w-6 text-orange-600 mr-3" />
-                    <div>
-                      <h4 className="font-medium text-gray-900">Платежи</h4>
-                      <p className="text-sm text-gray-600">Управление эскроу-счетом</p>
-                    </div>
-                  </span>
-                </Link>
+              <CardContent>
+                {bidsLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2].map((i) => (
+                      <div key={i} className="animate-pulse">
+                        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : pendingBids && pendingBids.length > 0 ? (
+                  <div className="space-y-4">
+                    {pendingBids.slice(0, 3).map((bid: any) => (
+                      <div key={bid.id} className="py-4 border-b last:border-b-0">
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-medium text-gray-900">
+                            Заявка на "{bid.task?.title}"
+                          </h4>
+                          <span className="font-semibold text-green-600">
+                            ₽{Number(bid.amount).toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-4 text-sm text-gray-600">
+                            <div className="flex items-center">
+                              <UserCheck className="h-4 w-4 mr-1" />
+                              {bid.freelancer?.firstName} {bid.freelancer?.lastName}
+                            </div>
+                            <div className="flex items-center">
+                              <Calendar className="h-4 w-4 mr-1" />
+                              {new Date(bid.deadline).toLocaleDateString('ru-RU')}
+                            </div>
+                          </div>
+                          <Link href={`/tasks`}>
+                            <span className="inline-flex items-center px-3 py-1 bg-primary text-white text-sm rounded hover:bg-blue-700 transition-colors cursor-pointer">
+                              Ответить
+                            </span>
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <UserCheck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500 mb-4">Пока нет новых заявок</p>
+                    <p className="text-sm text-gray-400">
+                      Создайте задачу, чтобы получать предложения от исполнителей
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

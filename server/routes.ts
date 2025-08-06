@@ -220,6 +220,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get pending bids for client review
+  app.get("/api/bids/pending", isAuthenticated, async (req: any, res) => {
+    try {
+      const clientId = getEffectiveUserId(req);
+      const pendingBids = await storage.getPendingBidsForClient(clientId);
+      res.json(pendingBids);
+    } catch (error) {
+      console.error("Error fetching pending bids for client:", error);
+      res.status(500).json({ message: "Failed to fetch pending bids" });
+    }
+  });
+
   app.patch("/api/bids/:id/status", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;

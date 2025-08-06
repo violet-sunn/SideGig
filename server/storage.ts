@@ -44,6 +44,7 @@ export interface IStorage {
   createBid(bid: InsertBid): Promise<Bid>;
   getBidsByTask(taskId: string): Promise<Bid[]>;
   getBidsByFreelancer(freelancerId: string): Promise<Bid[]>;
+  getPendingBidsForClient(clientId: string): Promise<Bid[]>;
   updateBidStatus(id: string, status: string): Promise<void>;
   
   // Message operations
@@ -176,6 +177,40 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(bids)
       .where(eq(bids.freelancerId, freelancerId))
+      .orderBy(desc(bids.createdAt));
+  }
+
+  async getPendingBidsForClient(clientId: string): Promise<Bid[]> {
+    return await db
+      .select({
+        id: bids.id,
+        taskId: bids.taskId,
+        freelancerId: bids.freelancerId,
+        amount: bids.amount,
+        deadline: bids.deadline,
+        proposal: bids.proposal,
+        status: bids.status,
+        createdAt: bids.createdAt,
+        updatedAt: bids.updatedAt,
+        task: {
+          id: tasks.id,
+          title: tasks.title,
+          description: tasks.description,
+          budget: tasks.budget,
+          deadline: tasks.deadline,
+          clientId: tasks.clientId
+        },
+        freelancer: {
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email
+        }
+      })
+      .from(bids)
+      .innerJoin(tasks, eq(bids.taskId, tasks.id))
+      .innerJoin(users, eq(bids.freelancerId, users.id))
+      .where(and(eq(tasks.clientId, clientId), eq(bids.status, "pending")))
       .orderBy(desc(bids.createdAt));
   }
 
