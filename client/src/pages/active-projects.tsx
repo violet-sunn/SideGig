@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "wouter";
 import Sidebar from "@/components/layout/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +30,7 @@ interface Project {
 
 export default function ActiveProjects() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
 
   const { data: projects = [], isLoading } = useQuery<Project[]>({
     queryKey: ["/api/tasks/active"],
@@ -91,7 +93,7 @@ export default function ActiveProjects() {
                 <p className="text-gray-500 mb-6">
                   Подавайте заявки на интересные проекты чтобы начать работу
                 </p>
-                <Button>
+                <Button onClick={() => setLocation("/browse-tasks")}>
                   Найти проекты
                 </Button>
               </CardContent>
@@ -159,11 +161,11 @@ export default function ActiveProjects() {
                       </div>
                       
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={() => setLocation(`/messages?project=${project.id}`)}>
                           <MessageSquare className="h-4 w-4 mr-1" />
                           Чат
                         </Button>
-                        <Button size="sm">
+                        <Button size="sm" onClick={() => setLocation(`/task/${project.id}`)}>
                           Подробности
                         </Button>
                       </div>

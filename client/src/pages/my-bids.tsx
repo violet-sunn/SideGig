@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "wouter";
 import Sidebar from "@/components/layout/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +29,7 @@ interface Bid {
 
 export default function MyBids() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
 
   const { data: bids = [], isLoading } = useQuery<Bid[]>({
     queryKey: ["/api/bids/my"],
@@ -92,7 +94,7 @@ export default function MyBids() {
                 <p className="text-gray-500 mb-6">
                   Начните подавать заявки на интересные проекты
                 </p>
-                <Button>
+                <Button onClick={() => setLocation("/browse-tasks")}>
                   Найти проекты
                 </Button>
               </CardContent>
@@ -158,11 +160,11 @@ export default function MyBids() {
                       </div>
                       
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={() => setLocation(`/task/${bid.taskId}`)}>
                           Подробности
                         </Button>
                         {bid.status === "pending" && (
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => console.log('Редактирование заявки:', bid.id)}>
                             Редактировать
                           </Button>
                         )}
