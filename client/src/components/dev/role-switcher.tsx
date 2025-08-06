@@ -35,17 +35,8 @@ export default function RoleSwitcher() {
       url.searchParams.delete('impersonate');
     }
     
-    // Update URL and invalidate user query to refresh data
-    window.history.pushState({}, '', url.toString());
-    setCurrentImpersonation(userId);
-    
-    // Invalidate all queries to refresh with new user context
-    queryClient.invalidateQueries();
-    
-    // Small delay to ensure URL change is processed
-    setTimeout(() => {
-      window.location.reload();
-    }, 100);
+    // Use full page reload to ensure clean state
+    window.location.href = url.toString();
   };
 
   const getInitials = (firstName?: string | null, lastName?: string | null) => {
