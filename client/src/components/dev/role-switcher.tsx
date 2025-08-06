@@ -24,36 +24,49 @@ export default function RoleSwitcher() {
     const urlParams = new URLSearchParams(window.location.search);
     const impersonate = urlParams.get('impersonate');
     setCurrentImpersonation(impersonate);
+    
+    // Save to localStorage for persistence
+    if (impersonate) {
+      localStorage.setItem('current-impersonation', impersonate);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Auto-restore impersonation if not in URL but saved in localStorage
+    const savedImpersonation = localStorage.getItem('current-impersonation');
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlImpersonate = urlParams.get('impersonate');
+    
+    if (savedImpersonation && !urlImpersonate && window.location.pathname !== '/') {
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.set('impersonate', savedImpersonation);
+      window.history.replaceState({}, '', newUrl.toString());
+      setCurrentImpersonation(savedImpersonation);
+    }
   }, []);
 
   const switchToUser = (userId: string | null) => {
     // Clear all queries before switching
     queryClient.clear();
     
+    // Update localStorage
+    if (userId) {
+      localStorage.setItem('current-impersonation', userId);
+    } else {
+      localStorage.removeItem('current-impersonation');
+    }
+    
     const url = new URL(window.location.href);
     
-    // Preserve other parameters like openBid
-    const otherParams = new URLSearchParams();
-    for (const [key, value] of url.searchParams.entries()) {
-      if (key !== 'impersonate') {
-        otherParams.set(key, value);
-      }
-    }
-    
-    // Create new URL with preserved parameters
-    const newUrl = new URL(url.pathname, url.origin);
-    
+    // Simply update the impersonate parameter without affecting others
     if (userId) {
-      newUrl.searchParams.set('impersonate', userId);
-    }
-    
-    // Add back other parameters
-    for (const [key, value] of otherParams.entries()) {
-      newUrl.searchParams.set(key, value);
+      url.searchParams.set('impersonate', userId);
+    } else {
+      url.searchParams.delete('impersonate');
     }
     
     // Use full page reload to ensure clean state
-    window.location.href = newUrl.toString();
+    window.location.href = url.toString();
   };
 
   const getInitials = (firstName?: string | null, lastName?: string | null) => {
