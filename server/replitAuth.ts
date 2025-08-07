@@ -155,11 +155,55 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   }
 };
 
+// IP Whitelist for admin access (development environment only for security)
+const ALLOWED_ADMIN_IPS = [
+  '127.0.0.1',          // Local development
+  '::1',                // Local IPv6
+  '0.0.0.0',            // Replit development
+  'localhost'           // Local hostname
+];
+
+// Check if request comes from allowed IP for admin access
+const isAllowedAdminIP = (req: any): boolean => {
+  // In development, allow all IPs (Replit environment)
+  if (process.env.NODE_ENV === 'development') {
+    return true;
+  }
+  
+  const clientIP = req.ip || req.connection?.remoteAddress || req.socket?.remoteAddress;
+  const forwardedIPs = req.headers['x-forwarded-for'];
+  
+  // Check direct IP
+  if (clientIP && ALLOWED_ADMIN_IPS.some(allowedIP => 
+    clientIP.includes(allowedIP) || clientIP === allowedIP
+  )) {
+    return true;
+  }
+  
+  // Check forwarded IPs
+  if (forwardedIPs) {
+    const ips = Array.isArray(forwardedIPs) ? forwardedIPs : [forwardedIPs];
+    return ips.some(ip => 
+      ALLOWED_ADMIN_IPS.some(allowedIP => 
+        ip.includes(allowedIP) || ip === allowedIP
+      )
+    );
+  }
+  
+  return false;
+};
+
 export const isAdmin: RequestHandler = async (req, res, next) => {
   const user = req.user as any;
 
   if (!req.isAuthenticated() || !user.expires_at) {
     return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  // Additional IP-based security check for production
+  if (!isAllowedAdminIP(req)) {
+    console.warn(`Admin access denied from IP: ${req.ip}, User: ${user.claims.sub}`);
+    return res.status(403).json({ message: "Forbidden: Access denied from this location" });
   }
 
   try {
@@ -169,6 +213,11 @@ export const isAdmin: RequestHandler = async (req, res, next) => {
     
     if (!userData || userData.role !== "admin") {
       return res.status(403).json({ message: "Forbidden: Admin access required" });
+    }
+
+    // Check if admin account is blocked
+    if (userData.isBlocked) {
+      return res.status(403).json({ message: "Forbidden: Admin account is blocked" });
     }
 
     return next();
