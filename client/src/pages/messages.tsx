@@ -238,17 +238,7 @@ export default function Messages() {
                   <p className="text-sm text-gray-600">Проект в работе • ₽85,000</p>
                 </div>
               </div>
-              <div className="flex items-center space-x-3">
-                <Button variant="ghost" size="icon">
-                  <Phone className="h-5 w-5" />
-                </Button>
-                <Button variant="ghost" size="icon">
-                  <Video className="h-5 w-5" />
-                </Button>
-                <Button variant="ghost" size="icon">
-                  <MoreVertical className="h-5 w-5" />
-                </Button>
-              </div>
+              
             </div>
 
             {/* Messages */}
