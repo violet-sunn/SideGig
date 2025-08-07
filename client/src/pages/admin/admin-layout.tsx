@@ -37,15 +37,16 @@ export default function AdminLayout() {
 
   // Simple routing - just render based on location
   const renderPage = () => {
-    if (location.includes('/admin/users')) {
+    if (location === '/admin/users') {
       return <div className="p-8"><h1 className="text-2xl font-bold">Управление пользователями</h1><p>Страница в разработке</p></div>;
-    } else if (location.includes('/admin/tasks')) {
+    } else if (location === '/admin/tasks') {
       return <div className="p-8"><h1 className="text-2xl font-bold">Управление проектами</h1><p>Страница в разработке</p></div>;
-    } else if (location.includes('/admin/disputes')) {
+    } else if (location === '/admin/disputes') {
       return <div className="p-8"><h1 className="text-2xl font-bold">Управление спорами</h1><p>Страница в разработке</p></div>;
-    } else if (location.includes('/admin/analytics')) {
+    } else if (location === '/admin/analytics') {
       return <div className="p-8"><h1 className="text-2xl font-bold">Аналитика</h1><p>Страница в разработке</p></div>;
     } else {
+      // Главная админки (для /, /admin, /admin/)
       return <AdminDashboard />;
     }
   };

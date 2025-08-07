@@ -43,11 +43,11 @@ function Router() {
         </>
       ) : (
         <>
+          <Route path="/admin/*" component={AdminLayout} />
           <Route path="/" component={
             user?.role === "admin" ? AdminLayout : 
             user?.role === "client" ? ClientDashboard : FreelancerDashboard
           } />
-          <Route path="/admin/*" component={AdminLayout} />
           <Route path="/create-task" component={CreateTask} />
           <Route path="/browse-tasks" component={BrowseTasks} />
           <Route path="/task/:id" component={TaskDetail} />

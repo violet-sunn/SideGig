@@ -18,14 +18,18 @@ export default function AdminSidebar({ user }: AdminSidebarProps) {
   const [location] = useLocation();
 
   const isActive = (path: string) => {
-    return location === path || location.startsWith(path);
+    if (path === "/admin") {
+      // Главная админки активна для корня / и /admin
+      return location === "/" || location === "/admin" || location === "/admin/";
+    }
+    return location === path || location.startsWith(path + "/");
   };
 
   const menuItems = [
     {
       group: "Управление",
       items: [
-        { icon: Home, label: "Главная", href: "/admin" },
+        { icon: Home, label: "Главная", href: "/" },
         { icon: BarChart3, label: "Аналитика", href: "/admin/analytics" },
         { icon: Users, label: "Пользователи", href: "/admin/users" },
         { icon: ShoppingBag, label: "Проекты", href: "/admin/tasks" },
