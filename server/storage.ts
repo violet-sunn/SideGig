@@ -362,82 +362,56 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPaymentsByUser(userId: string): Promise<any[]> {
-    const clientUser = alias(users, 'client_user');
-    const freelancerUser = alias(users, 'freelancer_user');
-
-    const result = await db
-      .select({
-        id: payments.id,
-        taskId: payments.taskId,
-        clientId: payments.clientId,
-        freelancerId: payments.freelancerId,
-        amount: payments.amount,
-        status: payments.status,
-        description: payments.description,
-        escrowedAt: payments.escrowedAt,
-        releasedAt: payments.releasedAt,
-        createdAt: payments.createdAt,
-        updatedAt: payments.updatedAt,
-        taskTitle: tasks.title,
-        taskDescription: tasks.description,
-        taskBudget: tasks.budget,
-        taskDeadline: tasks.deadline,
-        taskStatus: tasks.status,
-        taskClientId: tasks.clientId,
-        taskFreelancerId: tasks.freelancerId,
-        clientFirstName: clientUser.firstName,
-        clientLastName: clientUser.lastName,
-        clientEmail: clientUser.email,
-        clientProfileImageUrl: clientUser.profileImageUrl,
-        freelancerFirstName: freelancerUser.firstName,
-        freelancerLastName: freelancerUser.lastName,
-        freelancerEmail: freelancerUser.email,
-        freelancerProfileImageUrl: freelancerUser.profileImageUrl
-      })
+    // First get basic payment data
+    const paymentsData = await db
+      .select()
       .from(payments)
-      .leftJoin(tasks, eq(payments.taskId, tasks.id))
-      .leftJoin(clientUser, eq(payments.clientId, clientUser.id))
-      .leftJoin(freelancerUser, eq(payments.freelancerId, freelancerUser.id))
       .where(or(eq(payments.clientId, userId), eq(payments.freelancerId, userId)))
       .orderBy(desc(payments.createdAt));
 
-    return result.map(row => ({
-      id: row.id,
-      taskId: row.taskId,
-      clientId: row.clientId,
-      freelancerId: row.freelancerId,
-      amount: row.amount,
-      status: row.status,
-      description: row.description,
-      escrowedAt: row.escrowedAt,
-      releasedAt: row.releasedAt,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt,
-      task: {
-        id: row.taskId,
-        title: row.taskTitle,
-        description: row.taskDescription,
-        budget: row.taskBudget,
-        deadline: row.taskDeadline,
-        status: row.taskStatus,
-        clientId: row.taskClientId,
-        freelancerId: row.taskFreelancerId
-      },
-      client: {
-        id: row.clientId,
-        firstName: row.clientFirstName,
-        lastName: row.clientLastName,
-        email: row.clientEmail,
-        profileImageUrl: row.clientProfileImageUrl
-      },
-      freelancer: {
-        id: row.freelancerId,
-        firstName: row.freelancerFirstName,
-        lastName: row.freelancerLastName,
-        email: row.freelancerEmail,
-        profileImageUrl: row.freelancerProfileImageUrl
-      }
-    }));
+    // Enrich with additional data
+    const enrichedPayments = await Promise.all(
+      paymentsData.map(async (payment) => {
+        // Get task data
+        let task = null;
+        if (payment.taskId) {
+          const [taskData] = await db
+            .select()
+            .from(tasks)
+            .where(eq(tasks.id, payment.taskId));
+          task = taskData;
+        }
+
+        // Get client data
+        let client = null;
+        if (payment.clientId) {
+          const [clientData] = await db
+            .select()
+            .from(users)
+            .where(eq(users.id, payment.clientId));
+          client = clientData;
+        }
+
+        // Get freelancer data
+        let freelancer = null;
+        if (payment.freelancerId) {
+          const [freelancerData] = await db
+            .select()
+            .from(users)
+            .where(eq(users.id, payment.freelancerId));
+          freelancer = freelancerData;
+        }
+
+        return {
+          ...payment,
+          task,
+          client,
+          freelancer
+        };
+      })
+    );
+
+    return enrichedPayments;
   }
 
   // Review operations
