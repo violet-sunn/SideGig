@@ -4,8 +4,12 @@ import { useToast } from "@/hooks/use-toast";
 import AdminSidebar from "@/components/layout/admin-sidebar";
 import { useLocation } from "wouter";
 
-// Import admin pages directly
-import AdminDashboard from "./admin-dashboard";
+// Import admin pages using relative paths
+import AdminDashboard from "./admin-dashboard.tsx";
+import AdminUsers from "./admin-users.tsx";
+import AdminTasks from "./admin-tasks.tsx";  
+import AdminDisputes from "./admin-disputes.tsx";
+import AdminAnalytics from "./admin-analytics.tsx";
 
 export default function AdminLayout() {
   const { toast } = useToast();
@@ -38,13 +42,13 @@ export default function AdminLayout() {
   // Simple routing - just render based on location
   const renderPage = () => {
     if (location === '/admin/users') {
-      return <div className="p-8"><h1 className="text-2xl font-bold">Управление пользователями</h1><p>Страница в разработке</p></div>;
+      return <AdminUsers />;
     } else if (location === '/admin/tasks') {
-      return <div className="p-8"><h1 className="text-2xl font-bold">Управление проектами</h1><p>Страница в разработке</p></div>;
+      return <AdminTasks />;
     } else if (location === '/admin/disputes') {
-      return <div className="p-8"><h1 className="text-2xl font-bold">Управление спорами</h1><p>Страница в разработке</p></div>;
+      return <AdminDisputes />;
     } else if (location === '/admin/analytics') {
-      return <div className="p-8"><h1 className="text-2xl font-bold">Аналитика</h1><p>Страница в разработке</p></div>;
+      return <AdminAnalytics />;
     } else {
       // Главная админки (для /, /admin, /admin/)
       return <AdminDashboard />;

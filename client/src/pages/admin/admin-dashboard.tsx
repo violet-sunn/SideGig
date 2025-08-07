@@ -39,7 +39,7 @@ export default function AdminDashboard() {
             </Card>
           ))}
         </div>
-      ) : stats ? (
+      ) : (stats && typeof stats === 'object') ? (
         <>
           {/* User Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -49,11 +49,11 @@ export default function AdminDashboard() {
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.users.totalUsers}</div>
+                <div className="text-2xl font-bold">{(stats as any)?.users?.totalUsers || 0}</div>
                 <div className="flex items-center space-x-2 text-xs text-muted-foreground mt-1">
-                  <span>Клиенты: {stats.users.totalClients}</span>
+                  <span>Клиенты: {(stats as any)?.users?.totalClients || 0}</span>
                   <span>•</span>
-                  <span>Исполнители: {stats.users.totalFreelancers}</span>
+                  <span>Исполнители: {(stats as any)?.users?.totalFreelancers || 0}</span>
                 </div>
               </CardContent>
             </Card>
@@ -64,10 +64,10 @@ export default function AdminDashboard() {
                 <ShoppingBag className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.tasks.inProgressTasks}</div>
+                <div className="text-2xl font-bold">{(stats as any)?.tasks?.inProgressTasks || 0}</div>
                 <div className="flex items-center space-x-2 text-xs text-muted-foreground mt-1">
                   <TrendingUp className="h-3 w-3 text-green-500" />
-                  <span>Всего: {stats.tasks.totalTasks}</span>
+                  <span>Всего: {(stats as any)?.tasks?.totalTasks || 0}</span>
                 </div>
               </CardContent>
             </Card>
@@ -78,7 +78,7 @@ export default function AdminDashboard() {
                 <Scale className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.disputes.openDisputes}</div>
+                <div className="text-2xl font-bold">{(stats as any)?.disputes?.openDisputes || 0}</div>
                 <div className="flex items-center space-x-2 text-xs text-muted-foreground mt-1">
                   <AlertTriangle className="h-3 w-3 text-yellow-500" />
                   <span>Требуют рассмотрения</span>
@@ -92,9 +92,9 @@ export default function AdminDashboard() {
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">₽{Number(stats.payments.totalVolume).toLocaleString()}</div>
+                <div className="text-2xl font-bold">₽{Number((stats as any)?.payments?.totalVolume || 0).toLocaleString()}</div>
                 <div className="flex items-center space-x-2 text-xs text-muted-foreground mt-1">
-                  <span>В эскроу: ₽{Number(stats.payments.escrowedAmount).toLocaleString()}</span>
+                  <span>В эскроу: ₽{Number((stats as any)?.payments?.escrowedAmount || 0).toLocaleString()}</span>
                 </div>
               </CardContent>
             </Card>
@@ -114,21 +114,21 @@ export default function AdminDashboard() {
                       <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                       <span className="text-sm">Открытые</span>
                     </div>
-                    <span className="font-medium">{stats.tasks.openTasks}</span>
+                    <span className="font-medium">{(stats as any)?.tasks?.openTasks || 0}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
                       <span className="text-sm">В работе</span>
                     </div>
-                    <span className="font-medium">{stats.tasks.inProgressTasks}</span>
+                    <span className="font-medium">{(stats as any)?.tasks?.inProgressTasks || 0}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                       <span className="text-sm">Завершенные</span>
                     </div>
-                    <span className="font-medium">{stats.tasks.completedTasks}</span>
+                    <span className="font-medium">{(stats as any)?.tasks?.completedTasks || 0}</span>
                   </div>
                 </div>
               </CardContent>
@@ -146,19 +146,19 @@ export default function AdminDashboard() {
                       <AlertTriangle className="w-4 h-4 text-red-500" />
                       <span className="text-sm">Открытые споры</span>
                     </div>
-                    <span className="font-medium">{stats.disputes.openDisputes}</span>
+                    <span className="font-medium">{(stats as any)?.disputes?.openDisputes || 0}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <CheckCircle className="w-4 h-4 text-green-500" />
                       <span className="text-sm">Решенные споры</span>
                     </div>
-                    <span className="font-medium">{stats.disputes.resolvedDisputes}</span>
+                    <span className="font-medium">{(stats as any)?.disputes?.resolvedDisputes || 0}</span>
                   </div>
-                  {stats.disputes.totalDisputes > 0 && (
+                  {((stats as any)?.disputes?.totalDisputes || 0) > 0 && (
                     <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                       <div className="text-xs text-gray-600">
-                        Процент решенных споров: {Math.round((stats.disputes.resolvedDisputes / stats.disputes.totalDisputes) * 100)}%
+                        Процент решенных споров: {Math.round((((stats as any)?.disputes?.resolvedDisputes || 0) / ((stats as any)?.disputes?.totalDisputes || 1)) * 100)}%
                       </div>
                     </div>
                   )}
@@ -168,7 +168,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Blocked Users Warning */}
-          {stats.users.blockedUsers > 0 && (
+          {((stats as any)?.users?.blockedUsers || 0) > 0 && (
             <Card className="mt-6 border-yellow-200 bg-yellow-50">
               <CardHeader>
                 <CardTitle className="text-yellow-800 flex items-center">
@@ -178,7 +178,7 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <p className="text-yellow-700">
-                  {stats.users.blockedUsers} пользователей заблокированы. 
+                  {(stats as any)?.users?.blockedUsers || 0} пользователей заблокированы. 
                   Проверьте раздел "Пользователи" для управления.
                 </p>
               </CardContent>
