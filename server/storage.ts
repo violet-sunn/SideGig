@@ -360,10 +360,49 @@ export class DatabaseStorage implements IStorage {
     await db.update(payments).set(updateData).where(eq(payments.id, id));
   }
 
-  async getPaymentsByUser(userId: string): Promise<Payment[]> {
+  async getPaymentsByUser(userId: string): Promise<any[]> {
     return await db
-      .select()
+      .select({
+        id: payments.id,
+        taskId: payments.taskId,
+        clientId: payments.clientId,
+        freelancerId: payments.freelancerId,
+        amount: payments.amount,
+        status: payments.status,
+        description: payments.description,
+        escrowedAt: payments.escrowedAt,
+        releasedAt: payments.releasedAt,
+        createdAt: payments.createdAt,
+        updatedAt: payments.updatedAt,
+        task: {
+          id: tasks.id,
+          title: tasks.title,
+          description: tasks.description,
+          budget: tasks.budget,
+          deadline: tasks.deadline,
+          status: tasks.status,
+          clientId: tasks.clientId,
+          freelancerId: tasks.freelancerId
+        },
+        client: {
+          id: sql`client_user.id`,
+          firstName: sql`client_user.first_name`,
+          lastName: sql`client_user.last_name`,
+          email: sql`client_user.email`,
+          profileImageUrl: sql`client_user.profile_image_url`
+        },
+        freelancer: {
+          id: sql`freelancer_user.id`,
+          firstName: sql`freelancer_user.first_name`,
+          lastName: sql`freelancer_user.last_name`,
+          email: sql`freelancer_user.email`,
+          profileImageUrl: sql`freelancer_user.profile_image_url`
+        }
+      })
       .from(payments)
+      .leftJoin(tasks, eq(payments.taskId, tasks.id))
+      .leftJoin(sql`${users} as client_user`, sql`${payments.clientId} = client_user.id`)
+      .leftJoin(sql`${users} as freelancer_user`, sql`${payments.freelancerId} = freelancer_user.id`)
       .where(or(eq(payments.clientId, userId), eq(payments.freelancerId, userId)))
       .orderBy(desc(payments.createdAt));
   }
