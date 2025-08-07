@@ -248,6 +248,11 @@ export default function Messages() {
                         <p className="text-sm text-gray-600 break-words">
                           {conversation?.taskTitle || "Неизвестный проект"}
                         </p>
+                        {conversation?.task?.budget && (
+                          <p className="text-sm text-gray-500">
+                            Бюджет: ₽{conversation.task.budget.toLocaleString()}
+                          </p>
+                        )}
                       </>
                     );
                   })()}
