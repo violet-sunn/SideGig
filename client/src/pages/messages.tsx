@@ -190,7 +190,7 @@ export default function Messages() {
                           }
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 truncate">
+                      <p className="text-sm text-gray-600 break-words">
                         Проект: {conversation.taskTitle || "Неизвестный проект"}
                       </p>
                       <p className="text-sm text-gray-500 truncate mt-1">
