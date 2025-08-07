@@ -30,23 +30,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.get("/api/auth/user", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      
-      // Development mode: allow impersonation for testing
-      const impersonateUserId = req.query.impersonate as string;
-      if (process.env.NODE_ENV === "development" && impersonateUserId) {
-        console.log(`Impersonating user: ${impersonateUserId}`);
-        const impersonatedUser = await storage.getUser(impersonateUserId);
-        if (impersonatedUser) {
-          console.log(`Found impersonated user: ${impersonatedUser.firstName} ${impersonatedUser.lastName}, role: ${impersonatedUser.role}`);
-          return res.json(impersonatedUser);
-        } else {
-          console.log(`Impersonated user ${impersonateUserId} not found`);
-        }
-      }
+      const userId = getEffectiveUserId(req);
+      console.log(`Debug: Getting user data for effective user ID: ${userId}`);
       
       const user = await storage.getUser(userId);
-      console.log(`Regular user: ${user?.firstName} ${user?.lastName}, role: ${user?.role}`);
+      if (user) {
+        console.log(`Found user: ${user.firstName} ${user.lastName}, role: ${user.role}`);
+      } else {
+        console.log(`User ${userId} not found`);
+      }
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -306,8 +298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/messages/task/:taskId", isAuthenticated, async (req: any, res) => {
     try {
       const { taskId } = req.params;
-      const userId = getEffectiveUserId(req);
-      console.log(`Debug: Fetching messages for task ${taskId} by user ${userId}`);
+      console.log(`Debug: Fetching messages for task ${taskId}`);
       const messages = await storage.getMessagesByTask(taskId);
       console.log(`Debug: Found ${messages.length} messages for task ${taskId}`);
       res.json(messages);
