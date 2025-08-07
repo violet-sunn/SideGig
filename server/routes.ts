@@ -306,7 +306,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/messages/task/:taskId", isAuthenticated, async (req: any, res) => {
     try {
       const { taskId } = req.params;
+      const userId = getEffectiveUserId(req);
+      console.log(`Debug: Fetching messages for task ${taskId} by user ${userId}`);
       const messages = await storage.getMessagesByTask(taskId);
+      console.log(`Debug: Found ${messages.length} messages for task ${taskId}`);
       res.json(messages);
     } catch (error) {
       console.error("Error fetching messages:", error);
