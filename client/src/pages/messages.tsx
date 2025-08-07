@@ -21,7 +21,6 @@ export default function Messages() {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [messageText, setMessageText] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -103,12 +102,17 @@ export default function Messages() {
     });
   };
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
+  // Auto-scroll to bottom when messages change
   useEffect(() => {
-    scrollToBottom();
+    if (messages && messages.length > 0) {
+      // Use setTimeout to ensure DOM is updated
+      setTimeout(() => {
+        const messagesContainer = document.querySelector('.messages-container');
+        if (messagesContainer) {
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+      }, 100);
+    }
   }, [messages]);
 
   if (isLoading || !isAuthenticated) {
@@ -248,7 +252,7 @@ export default function Messages() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 messages-container">
               {messagesLoading ? (
                 <div className="space-y-4">
                   {[1, 2, 3].map((i) => (
@@ -304,7 +308,6 @@ export default function Messages() {
                       )}
                     </div>
                   ))}
-                  <div ref={messagesEndRef} />
                 </>
               ) : (
                 <div className="text-center py-8">
