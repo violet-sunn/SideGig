@@ -13,11 +13,13 @@ import { z } from "zod";
 
 // Development middleware for user impersonation
 function getEffectiveUserId(req: any): string {
-  // In development, allow impersonation via query parameter
-  const impersonateId = req.query.impersonate as string;
+  // In development, allow impersonation via query parameter or headers
+  const impersonateId = req.query.impersonate as string || req.headers['x-impersonate'] as string;
   if (process.env.NODE_ENV === 'development' && impersonateId) {
+    console.log("Debug: Using impersonated user ID:", impersonateId);
     return impersonateId;
   }
+  console.log("Debug: Using real user ID:", req.user.claims.sub);
   return req.user.claims.sub;
 }
 

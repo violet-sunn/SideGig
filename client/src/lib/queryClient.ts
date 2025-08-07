@@ -12,9 +12,20 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+  const headers: any = data ? { "Content-Type": "application/json" } : {};
+  
+  // Add impersonation header for development
+  if (import.meta.env.DEV) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const impersonateId = urlParams.get('impersonate');
+    if (impersonateId) {
+      headers['x-impersonate'] = impersonateId;
+    }
+  }
+
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
@@ -30,16 +41,19 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     const [url, params] = queryKey as [string, any?];
-    let fetchUrl = url;
+    const headers: any = {};
     
-    // Add impersonation parameter for development
-    if (params?.impersonate && import.meta.env.DEV) {
-      const urlObj = new URL(url, window.location.origin);
-      urlObj.searchParams.set('impersonate', params.impersonate);
-      fetchUrl = urlObj.toString();
+    // Add impersonation header for development
+    if (import.meta.env.DEV) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const impersonateId = urlParams.get('impersonate');
+      if (impersonateId) {
+        headers['x-impersonate'] = impersonateId;
+      }
     }
     
-    const res = await fetch(fetchUrl, {
+    const res = await fetch(url, {
+      headers,
       credentials: "include",
     });
 
