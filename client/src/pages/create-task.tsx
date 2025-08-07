@@ -119,6 +119,22 @@ export default function CreateTask() {
       return;
     }
 
+    // Validate deadline is not in the past
+    if (formData.deadline) {
+      const selectedDate = new Date(formData.deadline);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Reset time to start of day
+      
+      if (selectedDate <= today) {
+        toast({
+          title: "Ошибка",
+          description: "Дедлайн должен быть установлен на будущую дату",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     createTaskMutation.mutate({
       title: formData.title,
       description: formData.description,

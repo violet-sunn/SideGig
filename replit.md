@@ -76,7 +76,7 @@ Preferred communication style: Simple, everyday language.
 - **Neon Database**: Serverless PostgreSQL hosting
 - **WebSocket**: Planned for real-time notifications and messaging
 
-## Recent Updates (December 2024)
+## Recent Updates (August 2025)
 
 ### Admin Panel Implementation ✅
 - **Complete Admin Interface**: Fully functional admin panel accessible at root `/` for admin users
@@ -90,3 +90,17 @@ Preferred communication style: Simple, everyday language.
   - Comprehensive analytics and reporting
 - **TypeScript Safety**: Implemented safe typecasting for API data with proper error handling
 - **Real Data Integration**: All admin features work with authentic database data, no mock data used
+
+### Moderator Role Implementation ✅ (August 2025)
+- **Role-based Access Control**: Added moderator role with limited admin privileges
+- **Dispute Resolution**: Moderators can view admin information and resolve disputes
+- **Permission Restrictions**: Moderators cannot manage users or assign roles
+- **Security Middleware**: Added isModerator middleware with IP restrictions
+- **Database Updates**: Updated user schema to support moderator role
+
+### Date Validation System ✅ (August 2025)  
+- **Client-side Validation**: Added date input restrictions preventing past dates
+- **Server-side Validation**: Implemented Zod schema validation for deadlines
+- **Error Handling**: Proper error messages for invalid date submissions
+- **Task Creation**: Enhanced task creation with deadline validation
+- **Bid System**: Added deadline validation for freelancer bids

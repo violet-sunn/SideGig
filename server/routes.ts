@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, isAdmin, isModerator } from "./replitAuth";
+import { z } from "zod";
 import {
   insertTaskSchema,
   insertBidSchema,
@@ -9,7 +10,6 @@ import {
   insertReviewSchema,
   insertDisputeSchema,
 } from "@shared/schema";
-import { z } from "zod";
 
 // Development middleware for user impersonation
 function getEffectiveUserId(req: any): string {
@@ -233,6 +233,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(task);
     } catch (error) {
       console.error("Error creating task:", error);
+      if (error instanceof z.ZodError) {
+        const errorMessages = error.errors.map(err => err.message).join(", ");
+        return res.status(400).json({ message: errorMessages });
+      }
       res.status(500).json({ message: "Failed to create task" });
     }
   });
@@ -252,6 +256,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(bid);
     } catch (error) {
       console.error("Error creating bid:", error);
+      if (error instanceof z.ZodError) {
+        const errorMessages = error.errors.map(err => err.message).join(", ");
+        return res.status(400).json({ message: errorMessages });
+      }
       res.status(500).json({ message: "Failed to create bid" });
     }
   });
@@ -602,7 +610,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Prevent admin from removing their own admin role
-      const currentUserId = req.user?.claims?.sub;
+      const currentUserId = (req.user as any)?.claims?.sub;
       if (userId === currentUserId && role !== "admin") {
         return res.status(400).json({ message: "Cannot remove your own admin role" });
       }

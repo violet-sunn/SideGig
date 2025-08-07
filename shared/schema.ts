@@ -329,6 +329,11 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
   createdAt: true,
   updatedAt: true,
   assignedFreelancerId: true,
+}).extend({
+  deadline: z.coerce.date().optional().refine((date) => {
+    if (!date) return true; // deadline is optional
+    return date > new Date(); // deadline must be in the future
+  }, "Дедлайн должен быть установлен на будущую дату"),
 });
 
 export const insertBidSchema = createInsertSchema(bids).omit({
@@ -336,6 +341,10 @@ export const insertBidSchema = createInsertSchema(bids).omit({
   createdAt: true,
   updatedAt: true,
   status: true,
+}).extend({
+  deadline: z.coerce.date().refine((date) => {
+    return date > new Date(); // deadline must be in the future
+  }, "Дедлайн заявки должен быть установлен на будущую дату"),
 });
 
 export const insertMessageSchema = createInsertSchema(messages).omit({
