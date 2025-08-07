@@ -591,6 +591,13 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId));
   }
 
+  async updateUserRole(userId: string, role: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ role: role as any, updatedAt: new Date() })
+      .where(eq(users.id, userId));
+  }
+
   async getAllDisputes(): Promise<any[]> {
     const defendantAlias = alias(users, 'defendant');
     

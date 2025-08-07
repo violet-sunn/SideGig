@@ -7,6 +7,7 @@ import { useLocation } from "wouter";
 // Import admin pages using relative paths
 import AdminDashboard from "./admin-dashboard.tsx";
 import AdminUsers from "./admin-users.tsx";
+import AdminRoles from "./admin-roles.tsx";
 import AdminTasks from "./admin-tasks.tsx";  
 import AdminDisputes from "./admin-disputes.tsx";
 import AdminAnalytics from "./admin-analytics.tsx";
@@ -43,6 +44,8 @@ export default function AdminLayout() {
   const renderPage = () => {
     if (location === '/admin/users') {
       return <AdminUsers />;
+    } else if (location === '/admin/roles') {
+      return <AdminRoles />;
     } else if (location === '/admin/tasks') {
       return <AdminTasks />;
     } else if (location === '/admin/disputes') {

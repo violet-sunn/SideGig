@@ -584,6 +584,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin role management
+  app.patch("/api/admin/users/:userId/role", isAdmin, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { role } = req.body;
+      
+      // Validate role
+      if (!["client", "freelancer", "admin"].includes(role)) {
+        return res.status(400).json({ message: "Invalid role" });
+      }
+      
+      // Prevent admin from removing their own admin role
+      const currentUserId = req.user?.claims?.sub;
+      if (userId === currentUserId && role !== "admin") {
+        return res.status(400).json({ message: "Cannot remove your own admin role" });
+      }
+      
+      await storage.updateUserRole(userId, role);
+      res.json({ message: "Role updated successfully" });
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      res.status(500).json({ message: "Failed to update user role" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
