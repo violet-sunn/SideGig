@@ -52,7 +52,7 @@ export default function FreelancerDashboard() {
   });
 
   const { data: activeProjects, isLoading: projectsLoading } = useQuery<any[]>({
-    queryKey: ["/api/tasks/my"],
+    queryKey: ["/api/tasks/active"],
     enabled: isAuthenticated,
     retry: false,
   });

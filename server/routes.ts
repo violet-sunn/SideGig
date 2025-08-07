@@ -417,11 +417,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/tasks/active", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
+      console.log("Debug: Fetching active tasks for freelancer:", userId);
       const allTasks = await storage.getTasksByFreelancer(userId);
+      console.log("Debug: All freelancer tasks:", allTasks.map(t => ({ id: t.id, status: t.status, title: t.title })));
+      
       // Filter only active tasks (in_progress, in_review)
       const activeTasks = allTasks.filter(task => 
         task.status === "in_progress" || task.status === "in_review"
       );
+      console.log("Debug: Active tasks found:", activeTasks.length);
+      
+      if (activeTasks.length === 0) {
+        return res.json([]);
+      }
+      
       res.json(activeTasks);
     } catch (error) {
       console.error("Error fetching active projects:", error);
