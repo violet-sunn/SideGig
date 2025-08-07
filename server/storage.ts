@@ -26,6 +26,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, sql, count } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
 export interface IStorage {
   // User operations - mandatory for Replit Auth
@@ -361,7 +362,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPaymentsByUser(userId: string): Promise<any[]> {
-    return await db
+    const clientUser = alias(users, 'client_user');
+    const freelancerUser = alias(users, 'freelancer_user');
+
+    const result = await db
       .select({
         id: payments.id,
         taskId: payments.taskId,
@@ -374,37 +378,66 @@ export class DatabaseStorage implements IStorage {
         releasedAt: payments.releasedAt,
         createdAt: payments.createdAt,
         updatedAt: payments.updatedAt,
-        task: {
-          id: tasks.id,
-          title: tasks.title,
-          description: tasks.description,
-          budget: tasks.budget,
-          deadline: tasks.deadline,
-          status: tasks.status,
-          clientId: tasks.clientId,
-          freelancerId: tasks.freelancerId
-        },
-        client: {
-          id: sql`client_user.id`,
-          firstName: sql`client_user.first_name`,
-          lastName: sql`client_user.last_name`,
-          email: sql`client_user.email`,
-          profileImageUrl: sql`client_user.profile_image_url`
-        },
-        freelancer: {
-          id: sql`freelancer_user.id`,
-          firstName: sql`freelancer_user.first_name`,
-          lastName: sql`freelancer_user.last_name`,
-          email: sql`freelancer_user.email`,
-          profileImageUrl: sql`freelancer_user.profile_image_url`
-        }
+        taskTitle: tasks.title,
+        taskDescription: tasks.description,
+        taskBudget: tasks.budget,
+        taskDeadline: tasks.deadline,
+        taskStatus: tasks.status,
+        taskClientId: tasks.clientId,
+        taskFreelancerId: tasks.freelancerId,
+        clientFirstName: clientUser.firstName,
+        clientLastName: clientUser.lastName,
+        clientEmail: clientUser.email,
+        clientProfileImageUrl: clientUser.profileImageUrl,
+        freelancerFirstName: freelancerUser.firstName,
+        freelancerLastName: freelancerUser.lastName,
+        freelancerEmail: freelancerUser.email,
+        freelancerProfileImageUrl: freelancerUser.profileImageUrl
       })
       .from(payments)
       .leftJoin(tasks, eq(payments.taskId, tasks.id))
-      .leftJoin(sql`${users} as client_user`, sql`${payments.clientId} = client_user.id`)
-      .leftJoin(sql`${users} as freelancer_user`, sql`${payments.freelancerId} = freelancer_user.id`)
+      .leftJoin(clientUser, eq(payments.clientId, clientUser.id))
+      .leftJoin(freelancerUser, eq(payments.freelancerId, freelancerUser.id))
       .where(or(eq(payments.clientId, userId), eq(payments.freelancerId, userId)))
       .orderBy(desc(payments.createdAt));
+
+    return result.map(row => ({
+      id: row.id,
+      taskId: row.taskId,
+      clientId: row.clientId,
+      freelancerId: row.freelancerId,
+      amount: row.amount,
+      status: row.status,
+      description: row.description,
+      escrowedAt: row.escrowedAt,
+      releasedAt: row.releasedAt,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      task: {
+        id: row.taskId,
+        title: row.taskTitle,
+        description: row.taskDescription,
+        budget: row.taskBudget,
+        deadline: row.taskDeadline,
+        status: row.taskStatus,
+        clientId: row.taskClientId,
+        freelancerId: row.taskFreelancerId
+      },
+      client: {
+        id: row.clientId,
+        firstName: row.clientFirstName,
+        lastName: row.clientLastName,
+        email: row.clientEmail,
+        profileImageUrl: row.clientProfileImageUrl
+      },
+      freelancer: {
+        id: row.freelancerId,
+        firstName: row.freelancerFirstName,
+        lastName: row.freelancerLastName,
+        email: row.freelancerEmail,
+        profileImageUrl: row.freelancerProfileImageUrl
+      }
+    }));
   }
 
   // Review operations
