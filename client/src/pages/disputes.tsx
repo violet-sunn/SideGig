@@ -24,7 +24,10 @@ import {
   CheckCircle,
   FileText,
   MessageSquare,
-  Gavel
+  Gavel,
+  Paperclip,
+  X,
+  Upload
 } from "lucide-react";
 
 export default function Disputes() {
@@ -38,6 +41,7 @@ export default function Disputes() {
     defendantId: "",
     reason: "",
   });
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -78,6 +82,7 @@ export default function Disputes() {
       });
       setIsCreateDialogOpen(false);
       setNewDispute({ taskId: "", defendantId: "", reason: "" });
+      setAttachedFiles([]);
       queryClient.invalidateQueries({ queryKey: ["/api/disputes"] });
     },
     onError: (error) => {
@@ -99,6 +104,53 @@ export default function Disputes() {
       });
     },
   });
+
+  // File handling functions
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles = files.filter(file => {
+      const isValidType = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(file.type);
+      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB limit
+      
+      if (!isValidType) {
+        toast({
+          title: "Неподдерживаемый тип файла",
+          description: "Поддерживаются: JPG, PNG, PDF, TXT, DOC, DOCX",
+          variant: "destructive",
+        });
+        return false;
+      }
+      
+      if (!isValidSize) {
+        toast({
+          title: "Файл слишком большой",
+          description: "Максимальный размер файла: 10MB",
+          variant: "destructive",
+        });
+        return false;
+      }
+      
+      return true;
+    });
+    
+    setAttachedFiles(prev => [...prev, ...validFiles].slice(0, 5)); // Max 5 files
+    
+    if (e.target) {
+      e.target.value = '';
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
 
   const handleCreateDispute = (e: React.FormEvent) => {
     e.preventDefault();
@@ -223,6 +275,64 @@ export default function Disputes() {
                         />
                       </div>
 
+                      {/* File Attachments */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Прикрепить файлы (необязательно)
+                        </label>
+                        
+                        {/* File Upload Area */}
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                          <input
+                            type="file"
+                            multiple
+                            accept=".jpg,.jpeg,.png,.pdf,.txt,.doc,.docx"
+                            onChange={handleFileSelect}
+                            className="hidden"
+                            id="file-upload"
+                          />
+                          <label htmlFor="file-upload" className="cursor-pointer">
+                            <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                            <p className="text-sm text-gray-600 mb-1">
+                              Нажмите для выбора файлов или перетащите их сюда
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              JPG, PNG, PDF, TXT, DOC, DOCX (до 10MB каждый, максимум 5 файлов)
+                            </p>
+                          </label>
+                        </div>
+
+                        {/* Attached Files List */}
+                        {attachedFiles.length > 0 && (
+                          <div className="mt-4 space-y-2">
+                            {attachedFiles.map((file, index) => (
+                              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center space-x-3">
+                                  <Paperclip className="h-4 w-4 text-gray-500" />
+                                  <div>
+                                    <p className="text-sm font-medium text-gray-900 truncate max-w-[200px]">
+                                      {file.name}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                      {formatFileSize(file.size)}
+                                    </p>
+                                  </div>
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeFile(index)}
+                                  className="text-red-500 hover:text-red-700"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
                       <div className="bg-yellow-50 p-4 rounded-lg">
                         <div className="flex items-start space-x-2">
                           <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
@@ -230,7 +340,7 @@ export default function Disputes() {
                             <p className="font-medium mb-1">Важно знать:</p>
                             <ul className="space-y-1 text-xs">
                               <li>• Спор будет рассмотрен модератором в течение 3 рабочих дней</li>
-                              <li>• Приложите все доказательства и документы</li>
+                              <li>• Прикрепите все доказательства: скриншоты, документы, переписку</li>
                               <li>• Будьте максимально объективны в описании</li>
                               <li>• Решение модератора является окончательным</li>
                             </ul>
