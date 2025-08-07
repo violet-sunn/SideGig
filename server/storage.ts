@@ -237,10 +237,25 @@ export class DatabaseStorage implements IStorage {
     return newMessage;
   }
 
-  async getMessagesByTask(taskId: string): Promise<Message[]> {
+  async getMessagesByTask(taskId: string): Promise<any[]> {
     return await db
-      .select()
+      .select({
+        id: messages.id,
+        taskId: messages.taskId,
+        senderId: messages.senderId,
+        receiverId: messages.receiverId,
+        content: messages.content,
+        isRead: messages.isRead,
+        createdAt: messages.createdAt,
+        sender: {
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl
+        }
+      })
       .from(messages)
+      .innerJoin(users, eq(messages.senderId, users.id))
       .where(eq(messages.taskId, taskId))
       .orderBy(messages.createdAt);
   }
@@ -293,11 +308,12 @@ export class DatabaseStorage implements IStorage {
 
         return {
           taskId,
+          taskTitle: task?.title,
           lastMessage: lastMessage.content,
           lastMessageTime: lastMessage.createdAt,
           unreadCount: unreadResult.count,
           task,
-          user: otherUser,
+          otherUser,
         };
       })
     );

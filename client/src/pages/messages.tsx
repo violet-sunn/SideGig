@@ -85,11 +85,20 @@ export default function Messages() {
     
     if (!messageText.trim() || !selectedTaskId) return;
 
-    // For this MVP, we'll need to determine the receiver ID based on the task
-    // This would typically come from the conversation context
+    // Find the conversation to get the other user's ID
+    const conversation = conversations?.find(c => c.taskId === selectedTaskId);
+    if (!conversation?.otherUser?.id) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось определить получателя сообщения",
+        variant: "destructive",
+      });
+      return;
+    }
+
     sendMessageMutation.mutate({
       taskId: selectedTaskId,
-      receiverId: "placeholder", // Would be determined from task/conversation context
+      receiverId: conversation.otherUser.id,
       content: messageText.trim(),
     });
   };
