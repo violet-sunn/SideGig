@@ -228,14 +228,29 @@ export default function Messages() {
             <div className="bg-white border-b p-6 flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <Avatar className="h-12 w-12">
-                  <AvatarFallback>
-                    {/* Would show current conversation partner */}
-                    U
-                  </AvatarFallback>
+                  {(() => {
+                    const conversation = conversations?.find(c => c.taskId === selectedTaskId);
+                    return (
+                      <AvatarFallback>
+                        {conversation?.otherUser?.firstName?.[0]}{conversation?.otherUser?.lastName?.[0]}
+                      </AvatarFallback>
+                    );
+                  })()}
                 </Avatar>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Текущий диалог</h3>
-                  <p className="text-sm text-gray-600">Проект в работе • ₽85,000</p>
+                  {(() => {
+                    const conversation = conversations?.find(c => c.taskId === selectedTaskId);
+                    return (
+                      <>
+                        <h3 className="font-semibold text-gray-900">
+                          {conversation?.otherUser?.firstName} {conversation?.otherUser?.lastName}
+                        </h3>
+                        <p className="text-sm text-gray-600 break-words">
+                          {conversation?.taskTitle || "Неизвестный проект"}
+                        </p>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
               
