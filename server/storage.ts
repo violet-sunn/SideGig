@@ -238,7 +238,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMessagesByTask(taskId: string): Promise<any[]> {
-    return await db
+    const result = await db
       .select({
         id: messages.id,
         taskId: messages.taskId,
@@ -247,17 +247,30 @@ export class DatabaseStorage implements IStorage {
         content: messages.content,
         isRead: messages.isRead,
         createdAt: messages.createdAt,
-        sender: {
-          id: users.id,
-          firstName: users.firstName,
-          lastName: users.lastName,
-          profileImageUrl: users.profileImageUrl
-        }
+        senderFirstName: users.firstName,
+        senderLastName: users.lastName,
+        senderProfileImageUrl: users.profileImageUrl
       })
       .from(messages)
       .innerJoin(users, eq(messages.senderId, users.id))
       .where(eq(messages.taskId, taskId))
       .orderBy(messages.createdAt);
+
+    return result.map(row => ({
+      id: row.id,
+      taskId: row.taskId,
+      senderId: row.senderId,
+      receiverId: row.receiverId,
+      content: row.content,
+      isRead: row.isRead,
+      createdAt: row.createdAt,
+      sender: {
+        id: row.senderId,
+        firstName: row.senderFirstName,
+        lastName: row.senderLastName,
+        profileImageUrl: row.senderProfileImageUrl
+      }
+    }));
   }
 
   async getConversations(userId: string): Promise<any[]> {
