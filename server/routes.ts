@@ -300,7 +300,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { taskId } = req.params;
       console.log(`Debug: Fetching messages for task ${taskId}`);
       const messages = await storage.getMessagesByTask(taskId);
-      console.log(`Debug: Found ${messages.length} messages for task ${taskId}`);
+      console.log(`Debug: Found ${messages.length} messages for task ${taskId}:`, messages.map(m => ({ id: m.id, content: m.content.substring(0, 50) })));
       res.json(messages);
     } catch (error) {
       console.error("Error fetching messages:", error);
