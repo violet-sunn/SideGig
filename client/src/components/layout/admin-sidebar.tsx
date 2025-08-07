@@ -32,7 +32,7 @@ export default function AdminSidebar({ user }: AdminSidebarProps) {
         { icon: Home, label: "Главная", href: "/" },
         { icon: BarChart3, label: "Аналитика", href: "/admin/analytics" },
         { icon: Users, label: "Пользователи", href: "/admin/users" },
-        { icon: Shield, label: "Роли", href: "/admin/roles" },
+        ...(user?.role === "admin" ? [{ icon: Shield, label: "Роли", href: "/admin/roles" }] : []),
         { icon: ShoppingBag, label: "Проекты", href: "/admin/tasks" },
         { icon: Scale, label: "Споры", href: "/admin/disputes" },
       ]

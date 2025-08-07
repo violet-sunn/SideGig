@@ -27,7 +27,7 @@ export const sessions = pgTable(
 );
 
 // User roles enum
-export const userRoleEnum = pgEnum("user_role", ["client", "freelancer", "admin"]);
+export const userRoleEnum = pgEnum("user_role", ["client", "freelancer", "moderator", "admin"]);
 
 // Task status enum
 export const taskStatusEnum = pgEnum("task_status", [

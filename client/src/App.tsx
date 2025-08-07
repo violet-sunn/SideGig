@@ -45,7 +45,7 @@ function Router() {
         <>
           <Route path="/admin/*" component={AdminLayout} />
           <Route path="/" component={
-            user?.role === "admin" ? AdminLayout : 
+            (user?.role === "admin" || user?.role === "moderator") ? AdminLayout : 
             user?.role === "client" ? ClientDashboard : FreelancerDashboard
           } />
           <Route path="/create-task" component={CreateTask} />

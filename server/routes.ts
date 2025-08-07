@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
+import { setupAuth, isAuthenticated, isAdmin, isModerator } from "./replitAuth";
 import {
   insertTaskSchema,
   insertBidSchema,
@@ -533,7 +533,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get all disputes for moderation (admin only)
-  app.get("/api/admin/disputes", isAuthenticated, isAdmin, async (req, res) => {
+  app.get("/api/admin/disputes", isAuthenticated, isModerator, async (req, res) => {
     try {
       const disputes = await storage.getAllDisputes();
       res.json(disputes);
@@ -544,7 +544,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Resolve dispute (admin only)
-  app.patch("/api/admin/disputes/:id/resolve", isAuthenticated, isAdmin, async (req, res) => {
+  app.patch("/api/admin/disputes/:id/resolve", isAuthenticated, isModerator, async (req, res) => {
     try {
       const { id } = req.params;
       const { resolution, winner } = req.body;
@@ -591,8 +591,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { role } = req.body;
       
       // Validate role
-      if (!["client", "freelancer", "admin"].includes(role)) {
+      if (!["client", "freelancer", "moderator", "admin"].includes(role)) {
         return res.status(400).json({ message: "Invalid role" });
+      }
+      
+      // Only full admins can assign admin roles
+      const currentUserRole = (req as any).userRole;
+      if (role === "admin" && currentUserRole !== "admin") {
+        return res.status(403).json({ message: "Only administrators can assign admin roles" });
       }
       
       // Prevent admin from removing their own admin role

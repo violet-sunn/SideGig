@@ -193,6 +193,41 @@ const isAllowedAdminIP = (req: any): boolean => {
   return false;
 };
 
+// Middleware for moderators (can view admin info but limited actions)
+export const isModerator: RequestHandler = async (req, res, next) => {
+  const user = req.user as any;
+
+  if (!req.isAuthenticated() || !user.expires_at) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  // IP-based security check
+  if (!isAllowedAdminIP(req)) {
+    console.warn(`Moderator access denied from IP: ${req.ip}, User: ${user.claims.sub}`);
+    return res.status(403).json({ message: "Forbidden: Access denied from this location" });
+  }
+
+  try {
+    const { storage } = await import("./storage");
+    const userId = user.claims.sub;
+    const userData = await storage.getUser(userId);
+    
+    if (!userData || (userData.role !== "moderator" && userData.role !== "admin")) {
+      return res.status(403).json({ message: "Forbidden: Moderator or Admin access required" });
+    }
+
+    if (userData.isBlocked) {
+      return res.status(403).json({ message: "Forbidden: Account is blocked" });
+    }
+
+    // Add user role to request for further checks
+    (req as any).userRole = userData.role;
+    return next();
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export const isAdmin: RequestHandler = async (req, res, next) => {
   const user = req.user as any;
 

@@ -57,6 +57,8 @@ export default function AdminRoles() {
     switch (role) {
       case "admin":
         return <Crown className="h-4 w-4 text-yellow-600" />;
+      case "moderator":
+        return <Shield className="h-4 w-4 text-purple-600" />;
       case "client":
         return <User className="h-4 w-4 text-blue-600" />;
       case "freelancer":
@@ -69,6 +71,8 @@ export default function AdminRoles() {
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
       case "admin":
+        return "destructive";
+      case "moderator":
         return "destructive";
       case "client":
         return "default";
@@ -83,6 +87,8 @@ export default function AdminRoles() {
     switch (role) {
       case "admin":
         return "Администратор";
+      case "moderator":
+        return "Модератор";
       case "client":
         return "Клиент";
       case "freelancer":
@@ -247,6 +253,12 @@ export default function AdminRoles() {
                                     <span>Исполнитель</span>
                                   </div>
                                 </SelectItem>
+                                <SelectItem value="moderator">
+                                  <div className="flex items-center space-x-2">
+                                    <Shield className="h-4 w-4 text-purple-600" />
+                                    <span>Модератор</span>
+                                  </div>
+                                </SelectItem>
                                 <SelectItem value="admin">
                                   <div className="flex items-center space-x-2">
                                     <Crown className="h-4 w-4 text-yellow-600" />
@@ -257,7 +269,7 @@ export default function AdminRoles() {
                             </Select>
                           </div>
                           
-                          {newRole === "admin" && (
+                          {(newRole === "admin" || newRole === "moderator") && (
                             <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                               <div className="flex">
                                 <AlertTriangle className="h-5 w-5 text-yellow-400" />
@@ -266,7 +278,10 @@ export default function AdminRoles() {
                                     Внимание!
                                   </h3>
                                   <div className="mt-2 text-sm text-yellow-700">
-                                    Пользователь получит полный доступ к админской панели и сможет управлять всеми функциями платформы.
+                                    {newRole === "admin" 
+                                      ? "Пользователь получит полный доступ к админской панели и сможет управлять всеми функциями платформы."
+                                      : "Пользователь сможет просматривать админскую информацию и разрешать споры, но не сможет управлять пользователями или назначать роли."
+                                    }
                                   </div>
                                 </div>
                               </div>

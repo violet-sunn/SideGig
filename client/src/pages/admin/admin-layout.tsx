@@ -45,7 +45,15 @@ export default function AdminLayout() {
     if (location === '/admin/users') {
       return <AdminUsers />;
     } else if (location === '/admin/roles') {
-      return <AdminRoles />;
+      // Только полные админы могут управлять ролями
+      if (user?.role === "admin") {
+        return <AdminRoles />;
+      } else {
+        return <div className="p-8 text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Доступ запрещён</h2>
+          <p className="text-gray-600">У вас недостаточно прав для управления ролями пользователей.</p>
+        </div>;
+      }
     } else if (location === '/admin/tasks') {
       return <AdminTasks />;
     } else if (location === '/admin/disputes') {
