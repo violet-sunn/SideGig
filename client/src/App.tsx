@@ -46,6 +46,7 @@ function Router() {
           <Route path="/create-task" component={CreateTask} />
           <Route path="/browse-tasks" component={BrowseTasks} />
           <Route path="/task/:id" component={TaskDetail} />
+          <Route path="/tasks/:id" component={TaskDetail} />
           <Route path="/tasks" component={Tasks} />
           <Route path="/my-bids" component={MyBids} />
           <Route path="/active-projects" component={ActiveProjects} />

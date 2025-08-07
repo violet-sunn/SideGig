@@ -22,6 +22,15 @@ export default function Messages() {
   const [messageText, setMessageText] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Check URL params to auto-select task
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const taskIdFromUrl = urlParams.get('taskId');
+    if (taskIdFromUrl && !selectedTaskId) {
+      setSelectedTaskId(taskIdFromUrl);
+    }
+  }, [selectedTaskId]);
+
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {

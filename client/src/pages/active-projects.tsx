@@ -162,11 +162,11 @@ export default function ActiveProjects() {
                       </div>
                       
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => navigate(`/messages?project=${project.id}`)}>
+                        <Button variant="outline" size="sm" onClick={() => navigate(`/messages?taskId=${project.id}`)}>
                           <MessageSquare className="h-4 w-4 mr-1" />
                           Чат
                         </Button>
-                        <Button size="sm" onClick={() => navigate(`/task/${project.id}`)}>
+                        <Button size="sm" onClick={() => navigate(`/tasks/${project.id}`)}>
                           Подробности
                         </Button>
                       </div>
