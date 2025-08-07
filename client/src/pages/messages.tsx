@@ -45,7 +45,7 @@ export default function Messages() {
   });
 
   const { data: messages, isLoading: messagesLoading } = useQuery<any[]>({
-    queryKey: ["/api/messages/task", selectedTaskId],
+    queryKey: [`/api/messages/task/${selectedTaskId}`],
     enabled: isAuthenticated && !!selectedTaskId,
     retry: false,
   });
@@ -57,7 +57,7 @@ export default function Messages() {
     },
     onSuccess: () => {
       setMessageText("");
-      queryClient.invalidateQueries({ queryKey: ["/api/messages/task", selectedTaskId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/messages/task/${selectedTaskId}`] });
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
     },
     onError: (error) => {
