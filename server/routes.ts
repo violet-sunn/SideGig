@@ -139,13 +139,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/tasks/my", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
+      console.log("Debug: userId from getEffectiveUserId:", userId);
       const user = await storage.getUser(userId);
+      console.log("Debug: found user:", user ? { id: user.id, role: user.role } : "null");
       
       let tasks;
       if (user?.role === "client") {
+        console.log("Debug: fetching tasks for client:", userId);
         tasks = await storage.getTasksByClient(userId);
+        console.log("Debug: client tasks found:", tasks.length);
       } else {
+        console.log("Debug: fetching tasks for freelancer:", userId);
         tasks = await storage.getTasksByFreelancer(userId);
+        console.log("Debug: freelancer tasks found:", tasks.length);
       }
       
       res.json(tasks);
