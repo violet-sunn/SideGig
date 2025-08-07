@@ -27,7 +27,7 @@ export const sessions = pgTable(
 );
 
 // User roles enum
-export const userRoleEnum = pgEnum("user_role", ["client", "freelancer"]);
+export const userRoleEnum = pgEnum("user_role", ["client", "freelancer", "admin"]);
 
 // Task status enum
 export const taskStatusEnum = pgEnum("task_status", [
@@ -74,6 +74,7 @@ export const users = pgTable("users", {
   totalSpent: decimal("total_spent", { precision: 10, scale: 2 }).default("0"),
   skills: text("skills").array(),
   bio: text("bio"),
+  isBlocked: boolean("is_blocked").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

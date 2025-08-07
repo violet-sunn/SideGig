@@ -69,6 +69,14 @@ export interface IStorage {
   createDispute(dispute: InsertDispute): Promise<Dispute>;
   getDisputesByUser(userId: string): Promise<Dispute[]>;
   
+  // Admin operations
+  getAllUsers(page: number, limit: number, search?: string, role?: string): Promise<any[]>;
+  updateUserBlockStatus(userId: string, isBlocked: boolean): Promise<void>;
+  getAllDisputes(): Promise<any[]>;
+  resolveDispute(disputeId: string, resolution: string, winner: string, moderatorId: string): Promise<void>;
+  getPlatformStats(): Promise<any>;
+  getAllTasks(page: number, limit: number, status?: string): Promise<any[]>;
+  
   // Statistics
   getUserStats(userId: string): Promise<any>;
   
@@ -552,6 +560,160 @@ export class DatabaseStorage implements IStorage {
         rating: user.rating || "0",
       };
     }
+  }
+
+  // Admin operations
+  async getAllUsers(page: number = 1, limit: number = 20, search?: string, role?: string): Promise<any[]> {
+    const offset = (page - 1) * limit;
+    let query = db.select().from(users);
+
+    if (search) {
+      query = query.where(
+        or(
+          sql`${users.firstName} ILIKE ${`%${search}%`}`,
+          sql`${users.lastName} ILIKE ${`%${search}%`}`,
+          sql`${users.email} ILIKE ${`%${search}%`}`
+        )
+      );
+    }
+
+    if (role && role !== 'all') {
+      query = query.where(eq(users.role, role as any));
+    }
+
+    return await query.limit(limit).offset(offset).orderBy(desc(users.createdAt));
+  }
+
+  async updateUserBlockStatus(userId: string, isBlocked: boolean): Promise<void> {
+    await db
+      .update(users)
+      .set({ isBlocked, updatedAt: new Date() })
+      .where(eq(users.id, userId));
+  }
+
+  async getAllDisputes(): Promise<any[]> {
+    const defendantAlias = alias(users, 'defendant');
+    
+    return await db
+      .select({
+        id: disputes.id,
+        taskId: disputes.taskId,
+        initiatorId: disputes.initiatorId,
+        defendantId: disputes.defendantId,
+        reason: disputes.reason,
+        status: disputes.status,
+        resolution: disputes.resolution,
+        moderatorId: disputes.moderatorId,
+        createdAt: disputes.createdAt,
+        resolvedAt: disputes.resolvedAt,
+        task: {
+          id: tasks.id,
+          title: tasks.title,
+          budget: tasks.budget,
+        },
+        initiator: {
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+        },
+        defendant: {
+          id: defendantAlias.id,
+          firstName: defendantAlias.firstName,
+          lastName: defendantAlias.lastName,
+          email: defendantAlias.email,
+        }
+      })
+      .from(disputes)
+      .innerJoin(tasks, eq(disputes.taskId, tasks.id))
+      .innerJoin(users, eq(disputes.initiatorId, users.id))
+      .innerJoin(defendantAlias, eq(disputes.defendantId, defendantAlias.id))
+      .orderBy(desc(disputes.createdAt));
+  }
+
+  async resolveDispute(disputeId: string, resolution: string, winner: string, moderatorId: string): Promise<void> {
+    await db
+      .update(disputes)
+      .set({
+        status: "resolved",
+        resolution,
+        moderatorId,
+        resolvedAt: new Date(),
+      })
+      .where(eq(disputes.id, disputeId));
+  }
+
+  async getPlatformStats(): Promise<any> {
+    const [userStats] = await db
+      .select({
+        totalUsers: count(users.id),
+        totalClients: count(sql`CASE WHEN ${users.role} = 'client' THEN 1 END`),
+        totalFreelancers: count(sql`CASE WHEN ${users.role} = 'freelancer' THEN 1 END`),
+        blockedUsers: count(sql`CASE WHEN ${users.isBlocked} = true THEN 1 END`),
+      })
+      .from(users);
+
+    const [taskStats] = await db
+      .select({
+        totalTasks: count(tasks.id),
+        openTasks: count(sql`CASE WHEN ${tasks.status} = 'open' THEN 1 END`),
+        inProgressTasks: count(sql`CASE WHEN ${tasks.status} = 'in_progress' THEN 1 END`),
+        completedTasks: count(sql`CASE WHEN ${tasks.status} = 'completed' THEN 1 END`),
+      })
+      .from(tasks);
+
+    const [disputeStats] = await db
+      .select({
+        totalDisputes: count(disputes.id),
+        openDisputes: count(sql`CASE WHEN ${disputes.status} = 'open' THEN 1 END`),
+        resolvedDisputes: count(sql`CASE WHEN ${disputes.status} = 'resolved' THEN 1 END`),
+      })
+      .from(disputes);
+
+    const [paymentStats] = await db
+      .select({
+        totalPayments: count(payments.id),
+        totalVolume: sql<number>`COALESCE(SUM(${payments.amount}), 0)`,
+        escrowedAmount: sql<number>`COALESCE(SUM(CASE WHEN ${payments.status} = 'escrowed' THEN ${payments.amount} ELSE 0 END), 0)`,
+      })
+      .from(payments);
+
+    return {
+      users: userStats,
+      tasks: taskStats,
+      disputes: disputeStats,
+      payments: paymentStats,
+    };
+  }
+
+  async getAllTasks(page: number = 1, limit: number = 20, status?: string): Promise<any[]> {
+    const offset = (page - 1) * limit;
+    let query = db
+      .select({
+        id: tasks.id,
+        title: tasks.title,
+        description: tasks.description,
+        budget: tasks.budget,
+        status: tasks.status,
+        category: tasks.category,
+        clientId: tasks.clientId,
+        assignedFreelancerId: tasks.assignedFreelancerId,
+        createdAt: tasks.createdAt,
+        client: {
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+        }
+      })
+      .from(tasks)
+      .innerJoin(users, eq(tasks.clientId, users.id));
+
+    if (status && status !== 'all') {
+      query = query.where(eq(tasks.status, status as any));
+    }
+
+    return await query.limit(limit).offset(offset).orderBy(desc(tasks.createdAt));
   }
 
   // Development helpers

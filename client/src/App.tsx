@@ -17,6 +17,7 @@ import Messages from "@/pages/messages";
 import Payments from "@/pages/payments";
 import Reviews from "@/pages/reviews";
 import Disputes from "@/pages/disputes";
+import AdminDashboard from "@/pages/admin-dashboard";
 import Profile from "@/pages/profile";
 import MyBids from "@/pages/my-bids";
 import ActiveProjects from "@/pages/active-projects";
@@ -42,7 +43,12 @@ function Router() {
         </>
       ) : (
         <>
-          <Route path="/" component={user?.role === "client" ? ClientDashboard : FreelancerDashboard} />
+          <Route path="/" component={
+            user?.role === "admin" ? AdminDashboard : 
+            user?.role === "client" ? ClientDashboard : FreelancerDashboard
+          } />
+          <Route path="/admin" component={AdminDashboard} />
+          <Route path="/admin/*" component={AdminDashboard} />
           <Route path="/create-task" component={CreateTask} />
           <Route path="/browse-tasks" component={BrowseTasks} />
           <Route path="/task/:id" component={TaskDetail} />

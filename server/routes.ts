@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
 import {
   insertTaskSchema,
   insertBidSchema,
@@ -495,6 +495,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching earnings stats:", error);
       res.status(500).json({ message: "Failed to fetch earnings stats" });
+    }
+  });
+
+  // ==========================================================================
+  // ADMIN ROUTES
+  // ==========================================================================
+  
+  // Get all users (admin only)
+  app.get("/api/admin/users", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const search = req.query.search as string;
+      const role = req.query.role as string;
+      
+      const users = await storage.getAllUsers(page, limit, search, role);
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  // Block/Unblock user (admin only)
+  app.patch("/api/admin/users/:id/block", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { isBlocked } = req.body;
+      
+      await storage.updateUserBlockStatus(id, isBlocked);
+      res.json({ message: "User status updated successfully" });
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      res.status(500).json({ message: "Failed to update user status" });
+    }
+  });
+
+  // Get all disputes for moderation (admin only)
+  app.get("/api/admin/disputes", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const disputes = await storage.getAllDisputes();
+      res.json(disputes);
+    } catch (error) {
+      console.error("Error fetching disputes:", error);
+      res.status(500).json({ message: "Failed to fetch disputes" });
+    }
+  });
+
+  // Resolve dispute (admin only)
+  app.patch("/api/admin/disputes/:id/resolve", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { resolution, winner } = req.body;
+      const moderatorId = getEffectiveUserId(req);
+      
+      await storage.resolveDispute(id, resolution, winner, moderatorId);
+      res.json({ message: "Dispute resolved successfully" });
+    } catch (error) {
+      console.error("Error resolving dispute:", error);
+      res.status(500).json({ message: "Failed to resolve dispute" });
+    }
+  });
+
+  // Get platform statistics (admin only)
+  app.get("/api/admin/stats", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const stats = await storage.getPlatformStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching platform stats:", error);
+      res.status(500).json({ message: "Failed to fetch platform stats" });
+    }
+  });
+
+  // Get all tasks for admin oversight (admin only)
+  app.get("/api/admin/tasks", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const status = req.query.status as string;
+      
+      const tasks = await storage.getAllTasks(page, limit, status);
+      res.json(tasks);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      res.status(500).json({ message: "Failed to fetch tasks" });
     }
   });
 
