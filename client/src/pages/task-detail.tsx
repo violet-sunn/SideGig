@@ -73,7 +73,7 @@ export default function TaskDetail() {
   const taskId = params.id;
 
   const { data: task, isLoading: taskLoading } = useQuery<Task>({
-    queryKey: ["/api/tasks", taskId],
+    queryKey: [`/api/tasks/${taskId}`],
     enabled: !!taskId,
   });
 

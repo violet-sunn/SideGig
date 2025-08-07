@@ -178,9 +178,34 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(tasks.createdAt));
   }
 
-  async getTask(id: string): Promise<Task | undefined> {
-    const [task] = await db.select().from(tasks).where(eq(tasks.id, id));
-    return task;
+  async getTask(id: string): Promise<any | undefined> {
+    const [result] = await db
+      .select({
+        id: tasks.id,
+        title: tasks.title,
+        description: tasks.description,
+        budget: tasks.budget,
+        deadline: tasks.deadline,
+        status: tasks.status,
+        category: tasks.category,
+        skills: tasks.skills,
+        clientId: tasks.clientId,
+        assignedFreelancerId: tasks.assignedFreelancerId,
+        createdAt: tasks.createdAt,
+        updatedAt: tasks.updatedAt,
+        client: {
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          profileImageUrl: users.profileImageUrl
+        }
+      })
+      .from(tasks)
+      .innerJoin(users, eq(tasks.clientId, users.id))
+      .where(eq(tasks.id, id));
+    
+    return result;
   }
 
   async updateTaskStatus(id: string, status: string, freelancerId?: string): Promise<void> {
