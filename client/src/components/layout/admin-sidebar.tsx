@@ -31,13 +31,6 @@ export default function AdminSidebar({ user }: AdminSidebarProps) {
         { icon: ShoppingBag, label: "Проекты", href: "/admin/tasks" },
         { icon: Scale, label: "Споры", href: "/admin/disputes" },
       ]
-    },
-    {
-      group: "Система",
-      items: [
-        { icon: Shield, label: "Безопасность", href: "/admin/security" },
-        { icon: Settings, label: "Настройки", href: "/admin/settings" },
-      ]
     }
   ];
 

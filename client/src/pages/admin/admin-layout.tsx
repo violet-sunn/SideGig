@@ -2,12 +2,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import AdminSidebar from "@/components/layout/admin-sidebar";
-import { Switch, Route, useLocation } from "wouter";
+import { useLocation } from "wouter";
+
+// Import admin pages directly
 import AdminDashboard from "./admin-dashboard";
-import AdminUsers from "./admin-users";
-import AdminTasks from "./admin-tasks";
-import AdminDisputes from "./admin-disputes";
-import AdminAnalytics from "./admin-analytics";
 
 export default function AdminLayout() {
   const { toast } = useToast();
@@ -37,21 +35,27 @@ export default function AdminLayout() {
     );
   }
 
+  // Simple routing - just render based on location
+  const renderPage = () => {
+    if (location.includes('/admin/users')) {
+      return <div className="p-8"><h1 className="text-2xl font-bold">Управление пользователями</h1><p>Страница в разработке</p></div>;
+    } else if (location.includes('/admin/tasks')) {
+      return <div className="p-8"><h1 className="text-2xl font-bold">Управление проектами</h1><p>Страница в разработке</p></div>;
+    } else if (location.includes('/admin/disputes')) {
+      return <div className="p-8"><h1 className="text-2xl font-bold">Управление спорами</h1><p>Страница в разработке</p></div>;
+    } else if (location.includes('/admin/analytics')) {
+      return <div className="p-8"><h1 className="text-2xl font-bold">Аналитика</h1><p>Страница в разработке</p></div>;
+    } else {
+      return <AdminDashboard />;
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       <AdminSidebar user={user} />
       
       <main className="flex-1 overflow-auto">
-        <Switch>
-          <Route path="/admin" component={AdminDashboard} />
-          <Route path="/admin/analytics" component={AdminAnalytics} />
-          <Route path="/admin/users" component={AdminUsers} />
-          <Route path="/admin/tasks" component={AdminTasks} />
-          <Route path="/admin/disputes" component={AdminDisputes} />
-          <Route>
-            <AdminDashboard />
-          </Route>
-        </Switch>
+        {renderPage()}
       </main>
     </div>
   );
