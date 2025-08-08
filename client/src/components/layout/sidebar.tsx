@@ -46,8 +46,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
   const freelancerNavItems = [
     { href: "/", icon: BarChart3, label: "Дашборд" },
     { href: "/browse-tasks", icon: Search, label: "Найти задачи" },
-    { href: "/my-bids", icon: HandHelping, label: "Мои заявки" },
-    { href: "/active-projects", icon: Briefcase, label: "Активные проекты" },
+    { href: "/active-projects", icon: Briefcase, label: "Мои проекты" },
     { href: "/messages", icon: MessageSquare, label: "Сообщения" },
     { href: "/earnings", icon: Wallet, label: "Доходы" },
     { href: "/profile", icon: UserCog, label: "Профиль" },

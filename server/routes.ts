@@ -220,8 +220,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Send notifications based on status change
       if (task) {
-        if (status === "completed" && task.freelancerId) {
-          const freelancer = await storage.getUser(task.freelancerId);
+        if (status === "completed" && task.assignedFreelancerId) {
+          const freelancer = await storage.getUser(task.assignedFreelancerId);
           if (freelancer) {
             await NotificationService.notifyTaskCompleted(
               task.id,
@@ -237,6 +237,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating task status:", error);
       res.status(500).json({ message: "Failed to update task status" });
+    }
+  });
+
+  // Submit work for review (freelancer)
+  app.patch("/api/tasks/:id/submit", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { deliveryMessage, files } = req.body;
+      const userId = getEffectiveUserId(req);
+      
+      const task = await storage.getTask(id);
+      if (!task) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+      
+      if (task.assignedFreelancerId !== userId) {
+        return res.status(403).json({ message: "Not assigned to this task" });
+      }
+      
+      // Update task status to in_review
+      await storage.updateTaskStatus(id, "in_review");
+      
+      // Save delivery details
+      await storage.saveTaskDelivery(id, {
+        message: deliveryMessage,
+        files: files || [],
+        submittedAt: new Date()
+      });
+      
+      // Notify client
+      const client = await storage.getUser(task.clientId);
+      if (client) {
+        await NotificationService.notifyTaskCompleted(
+          task.id,
+          task.clientId,
+          `${client.firstName} ${client.lastName}`,
+          task.title
+        );
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error submitting work:", error);
+      res.status(500).json({ message: "Failed to submit work" });
+    }
+  });
+
+  // Approve completed work (client)
+  app.patch("/api/tasks/:id/approve", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = getEffectiveUserId(req);
+      
+      const task = await storage.getTask(id);
+      if (!task) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+      
+      if (task.clientId !== userId) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+      
+      // Update task status to completed
+      await storage.updateTaskStatus(id, "completed");
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error approving work:", error);
+      res.status(500).json({ message: "Failed to approve work" });
+    }
+  });
+
+  // Reject completed work (client) 
+  app.patch("/api/tasks/:id/reject", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { rejectionReason } = req.body;
+      const userId = getEffectiveUserId(req);
+      
+      const task = await storage.getTask(id);
+      if (!task) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+      
+      if (task.clientId !== userId) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+      
+      // Update task status back to in_progress
+      await storage.updateTaskStatus(id, "in_progress");
+      
+      // Save rejection reason
+      await storage.saveTaskRejection(id, {
+        reason: rejectionReason,
+        rejectedAt: new Date()
+      });
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error rejecting work:", error);
+      res.status(500).json({ message: "Failed to reject work" });
     }
   });
 
@@ -378,6 +479,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating bid status:", error);
       res.status(500).json({ message: "Failed to update bid status" });
+    }
+  });
+
+  // Accept bid endpoint (alternative route for UI compatibility)
+  app.patch("/api/bids/:id/accept", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Get bid details before updating for notification
+      const bid = await storage.getBid(id);
+      const task = bid ? await storage.getTask(bid.taskId) : null;
+      const client = bid ? await storage.getUser(getEffectiveUserId(req)) : null;
+      
+      // Use special acceptBid method that also assigns freelancer to task
+      await storage.acceptBid(id);
+      
+      // Notify freelancer about bid acceptance
+      if (bid && task && client) {
+        await NotificationService.notifyBidAccepted(
+          task.id,
+          bid.freelancerId,
+          `${client.firstName} ${client.lastName}`,
+          task.title
+        );
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error accepting bid:", error);
+      res.status(500).json({ message: "Failed to accept bid" });
     }
   });
 

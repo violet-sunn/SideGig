@@ -239,6 +239,20 @@ export class DatabaseStorage implements IStorage {
     await db.update(tasks).set(updateData).where(eq(tasks.id, id));
   }
 
+  async saveTaskDelivery(taskId: string, deliveryData: any): Promise<void> {
+    // For now, just update the timestamp - delivery details can be stored in messages
+    await db.update(tasks).set({
+      updatedAt: new Date()
+    }).where(eq(tasks.id, taskId));
+  }
+
+  async saveTaskRejection(taskId: string, rejectionData: any): Promise<void> {
+    // For now, just update the timestamp - rejection reason can be stored in messages
+    await db.update(tasks).set({
+      updatedAt: new Date()
+    }).where(eq(tasks.id, taskId));
+  }
+
   // Bid operations
   async createBid(bid: InsertBid): Promise<Bid> {
     const [newBid] = await db.insert(bids).values(bid).returning();
