@@ -7,9 +7,23 @@ export function useAuth() {
   const impersonateId = urlParams.get('impersonate');
   
   const { data: user, isLoading } = useQuery<User>({
-    queryKey: ["/api/auth/user", { impersonate: impersonateId }],
+    queryKey: ["/api/auth/user", { impersonate: impersonateId, timestamp: Date.now() }],
     retry: false,
+    staleTime: 0, // Force fresh data
+    gcTime: 0, // Don't cache
   });
+
+  // Debug logging to see what user data we're getting
+  if (user) {
+    console.log('Frontend useAuth - User data:', {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      onboardingCompleted: user.onboardingCompleted,
+      fullUser: user
+    });
+  }
 
   return {
     user,
