@@ -600,6 +600,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/messages", devAuthBypass, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
+      console.log("Debug: Creating message with data:", { ...req.body, senderId: userId });
       const messageData = insertMessageSchema.parse({
         ...req.body,
         senderId: userId,
