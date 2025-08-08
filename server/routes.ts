@@ -53,7 +53,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const user = await storage.getUser(userId);
       if (user) {
-        console.log(`Found user: ${user.firstName} ${user.lastName}, role: ${user.role}`);
+        console.log(`Found user: ${user.firstName} ${user.lastName}, role: ${user.role}, onboardingCompleted: ${user.onboardingCompleted}`);
+        console.log(`Full user object:`, JSON.stringify(user, null, 2));
       } else {
         console.log(`User ${userId} not found`);
       }
