@@ -1,11 +1,14 @@
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import { apiRequest } from "@/lib/queryClient";
 import Sidebar from "@/components/layout/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   ListTodo, 
   CheckCircle, 
@@ -15,13 +18,16 @@ import {
   Users,
   MessageSquare,
   CreditCard,
-  BarChart3
+  BarChart3,
+  Clock,
+  Eye
 } from "lucide-react";
 import { Link } from "wouter";
 
 export default function ClientDashboard() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading, user } = useAuth();
+  const queryClient = useQueryClient();
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -53,6 +59,46 @@ export default function ClientDashboard() {
     queryKey: ["/api/tasks/my"],
     enabled: isAuthenticated,
     retry: false,
+  });
+
+  const { data: pendingBids, isLoading: bidsLoading } = useQuery<any[]>({
+    queryKey: ["/api/bids/pending"],
+    enabled: isAuthenticated,
+    retry: false,
+  });
+
+  const updateBidMutation = useMutation({
+    mutationFn: async ({ bidId, status }: { bidId: string; status: string }) => {
+      const response = await apiRequest("PATCH", `/api/bids/${bidId}/status`, { status });
+      return response.json();
+    },
+    onSuccess: (data, variables) => {
+      toast({
+        title: "Успешно!",
+        description: variables.status === "accepted" ? "Заявка принята" : "Заявка отклонена",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/bids/pending"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/my"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users/stats"] });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Ошибка",
+        description: "Не удалось обновить статус заявки",
+        variant: "destructive",
+      });
+    },
   });
 
 
@@ -163,7 +209,78 @@ export default function ClientDashboard() {
             </Card>
           </div>
 
-          {/* Recent ListTodo */}
+          {/* Pending Bids */}
+          {pendingBids && pendingBids.length > 0 && (
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Clock className="h-5 w-5 mr-2 text-orange-600" />
+                  Новые заявки ({pendingBids.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {bidsLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2].map((i) => (
+                      <div key={i} className="animate-pulse">
+                        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {pendingBids.map((bid: any) => (
+                      <div key={bid.id} className="border rounded-lg p-4 bg-orange-50">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start space-x-3 flex-1">
+                            <Avatar className="h-10 w-10">
+                              <AvatarFallback>
+                                {bid.freelancer?.firstName?.[0]}{bid.freelancer?.lastName?.[0]}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <h4 className="font-medium text-gray-900">
+                                {bid.freelancer?.firstName} {bid.freelancer?.lastName}
+                              </h4>
+                              <p className="text-sm text-gray-600 mb-2">{bid.task?.title}</p>
+                              <p className="text-sm text-gray-700 mb-3">{bid.proposal}</p>
+                              <div className="flex items-center space-x-4 text-sm text-gray-600">
+                                <span className="font-semibold text-primary">₽{Number(bid.amount).toLocaleString()}</span>
+                                <span>Срок: {new Date(bid.deadline).toLocaleDateString()}</span>
+                                <span>Подана {new Date(bid.createdAt).toLocaleDateString()}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex space-x-2 ml-4">
+                            <Button
+                              size="sm"
+                              onClick={() => updateBidMutation.mutate({ bidId: bid.id, status: "accepted" })}
+                              disabled={updateBidMutation.isPending}
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                            >
+                              Принять
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => updateBidMutation.mutate({ bidId: bid.id, status: "rejected" })}
+                              disabled={updateBidMutation.isPending}
+                              className="border-red-300 text-red-700 hover:bg-red-50"
+                            >
+                              Отклонить
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Recent Tasks */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <Card>
               <CardHeader>
