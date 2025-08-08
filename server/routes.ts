@@ -303,7 +303,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { status } = req.body;
       
-      await storage.updateBidStatus(id, status);
+      if (status === "accepted") {
+        // Use special acceptBid method that also assigns freelancer to task
+        await storage.acceptBid(id);
+      } else {
+        // For rejected or other statuses, just update bid status
+        await storage.updateBidStatus(id, status);
+      }
+      
       res.json({ success: true });
     } catch (error) {
       console.error("Error updating bid status:", error);

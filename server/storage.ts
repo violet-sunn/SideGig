@@ -80,6 +80,9 @@ export interface IStorage {
   // Statistics
   getUserStats(userId: string): Promise<any>;
   
+  // Bid operations - advanced
+  acceptBid(bidId: string): Promise<void>;
+  
   // Development helpers
   getTestUsers(): Promise<User[]>;
 }
@@ -283,6 +286,34 @@ export class DatabaseStorage implements IStorage {
 
   async updateBidStatus(id: string, status: "pending" | "accepted" | "rejected" | "counter_offer"): Promise<void> {
     await db.update(bids).set({ status, updatedAt: new Date() }).where(eq(bids.id, id));
+  }
+
+  async acceptBid(bidId: string): Promise<void> {
+    // Get bid data
+    const [bid] = await db.select().from(bids).where(eq(bids.id, bidId));
+    if (!bid) throw new Error("Bid not found");
+
+    // Update bid status to accepted
+    await db.update(bids).set({ status: "accepted", updatedAt: new Date() }).where(eq(bids.id, bidId));
+
+    // Assign freelancer to task and change task status
+    await db.update(tasks).set({
+      assignedFreelancerId: bid.freelancerId,
+      status: "in_progress",
+      updatedAt: new Date()
+    }).where(eq(tasks.id, bid.taskId));
+
+    // Reject all other pending bids for this task
+    await db.update(bids).set({
+      status: "rejected",
+      updatedAt: new Date()
+    }).where(
+      and(
+        eq(bids.taskId, bid.taskId),
+        eq(bids.status, "pending"),
+        sql`${bids.id} != ${bidId}`
+      )
+    );
   }
 
   // Message operations
