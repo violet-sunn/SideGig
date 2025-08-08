@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
 import NotificationBell from "@/components/notifications/notification-bell";
 
 interface SidebarProps {
-  userRole: "client" | "freelancer";
+  userRole: "client" | "freelancer" | "moderator" | "admin";
 }
 
 export default function Sidebar({ userRole }: SidebarProps) {
@@ -48,6 +48,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
     { href: "/browse-tasks", icon: Search, label: "Найти задачи" },
     { href: "/active-projects", icon: Briefcase, label: "Мои проекты" },
     { href: "/messages", icon: MessageSquare, label: "Сообщения" },
+    { href: "/disputes", icon: Scale, label: "Споры" },
     { href: "/earnings", icon: Wallet, label: "Доходы" },
     { href: "/profile", icon: UserCog, label: "Профиль" },
   ];
