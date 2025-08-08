@@ -131,6 +131,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Onboarding completion endpoint
+  app.post("/api/profile/onboarding", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getEffectiveUserId(req);
+      const { role, firstName, lastName, bio, skills, onboardingCompleted } = req.body;
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const profileData: any = {
+        onboardingCompleted: true
+      };
+      
+      if (role !== undefined) profileData.role = role;
+      if (firstName !== undefined) profileData.firstName = firstName;
+      if (lastName !== undefined) profileData.lastName = lastName;
+      if (bio !== undefined) profileData.bio = bio;
+      if (skills !== undefined) profileData.skills = Array.isArray(skills) ? skills : [];
+
+      const updatedUser = await storage.updateUserProfile(userId, profileData);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error completing onboarding:", error);
+      res.status(500).json({ message: "Failed to complete onboarding" });
+    }
+  });
+
   // Task routes  
   app.post("/api/tasks", devAuthBypass, async (req: any, res) => {
     try {

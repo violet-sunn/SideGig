@@ -22,6 +22,7 @@ import Profile from "@/pages/profile";
 import MyBids from "@/pages/my-bids";
 import ActiveProjects from "@/pages/active-projects";
 import Earnings from "@/pages/earnings";
+import Onboarding from "@/pages/onboarding";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -41,6 +42,14 @@ function Router() {
           <Route path="/" component={Landing} />
           <Route component={NotFound} />
         </>
+      ) : user && !user.onboardingCompleted ? (
+        <>
+          <Route path="/onboarding" component={Onboarding} />
+          <Route path="/*" component={() => {
+            window.location.href = '/onboarding';
+            return null;
+          }} />
+        </>
       ) : (
         <>
           <Route path="/admin/*" component={AdminLayout} />
@@ -48,6 +57,7 @@ function Router() {
             (user?.role === "admin" || user?.role === "moderator") ? AdminLayout : 
             user?.role === "client" ? ClientDashboard : FreelancerDashboard
           } />
+          <Route path="/onboarding" component={Onboarding} />
           <Route path="/create-task" component={CreateTask} />
           <Route path="/browse-tasks" component={BrowseTasks} />
           <Route path="/task/:id" component={TaskDetail} />

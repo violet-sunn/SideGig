@@ -84,7 +84,7 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  role: userRoleEnum("role").notNull().default("client"),
+  role: userRoleEnum("role"),
   rating: decimal("rating", { precision: 3, scale: 2 }).default("0"),
   totalReviews: integer("total_reviews").default(0),
   totalEarned: decimal("total_earned", { precision: 10, scale: 2 }).default("0"),
@@ -92,6 +92,7 @@ export const users = pgTable("users", {
   skills: text("skills").array(),
   bio: text("bio"),
   isBlocked: boolean("is_blocked").default(false),
+  onboardingCompleted: boolean("onboarding_completed").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
