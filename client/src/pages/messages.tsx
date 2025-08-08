@@ -106,7 +106,6 @@ export default function Messages() {
 
     sendMessageMutation.mutate({
       taskId: selectedTaskId,
-      receiverId: conversation.otherUser.id,
       content: messageText.trim(),
     });
   };

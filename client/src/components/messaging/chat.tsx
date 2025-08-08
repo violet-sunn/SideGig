@@ -76,7 +76,6 @@ export default function Chat({ taskId, otherUser, taskTitle, taskBudget }: ChatP
 
     sendMessageMutation.mutate({
       taskId,
-      receiverId: otherUser.id,
       content: messageText.trim(),
     });
   };

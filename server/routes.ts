@@ -600,30 +600,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/messages", devAuthBypass, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
-      console.log("Debug: Creating message with data:", { ...req.body, senderId: userId });
+      
+      // Get task to determine receiver
+      const task = await storage.getTask(req.body.taskId);
+      if (!task) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+      
+      // Determine receiver - if sender is client, receiver is freelancer, and vice versa
+      let receiverId: string | null = null;
+      if (task.clientId === userId && task.assignedFreelancerId) {
+        receiverId = task.assignedFreelancerId;
+      } else if (task.assignedFreelancerId === userId) {
+        receiverId = task.clientId;
+      }
+      
+      if (!receiverId) {
+        return res.status(400).json({ message: "Cannot determine message receiver" });
+      }
+
+      console.log("Debug: Creating message with data:", { 
+        ...req.body, 
+        senderId: userId, 
+        receiverId 
+      });
+      
       const messageData = insertMessageSchema.parse({
         ...req.body,
         senderId: userId,
+        receiverId: receiverId,
       });
 
       const message = await storage.createMessage(messageData);
       
-      // Get task and sender details for notification
-      const task = await storage.getTask(message.taskId);
+      // Get sender details for notification
       const sender = await storage.getUser(userId);
       
-      if (task && sender) {
-        // Determine receiver - if sender is client, notify freelancer, and vice versa
-        const receiverId = task.clientId === userId ? task.freelancerId : task.clientId;
-        
-        if (receiverId) {
-          await NotificationService.notifyNewMessage(
-            task.id,
-            receiverId,
-            `${sender.firstName} ${sender.lastName}`,
-            task.title
-          );
-        }
+      if (sender) {
+        await NotificationService.notifyNewMessage(
+          task.id,
+          receiverId,
+          `${sender.firstName} ${sender.lastName}`,
+          task.title
+        );
       }
       
       res.json(message);
