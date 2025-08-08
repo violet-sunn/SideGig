@@ -57,7 +57,7 @@ export default function Reviews() {
 
   const submitReviewMutation = useMutation({
     mutationFn: async (reviewData: any) => {
-      const response = await apiRequest("POST", "/api/reviews", reviewData);
+      const response = await apiRequest("/api/reviews", "POST", reviewData);
       return response.json();
     },
     onSuccess: () => {

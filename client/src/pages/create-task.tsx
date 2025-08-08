@@ -75,7 +75,7 @@ export default function CreateTask() {
 
   const createTaskMutation = useMutation({
     mutationFn: async (taskData: any) => {
-      const response = await apiRequest("POST", "/api/tasks", taskData);
+      const response = await apiRequest("/api/tasks", "POST", taskData);
       return response.json();
     },
     onSuccess: () => {

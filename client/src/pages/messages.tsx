@@ -60,7 +60,7 @@ export default function Messages() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
-      const response = await apiRequest("POST", "/api/messages", messageData);
+      const response = await apiRequest("/api/messages", "POST", messageData);
       return response.json();
     },
     onSuccess: () => {

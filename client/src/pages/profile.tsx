@@ -190,7 +190,7 @@ export default function Profile() {
 
   const addPortfolioItemMutation = useMutation({
     mutationFn: async (portfolioData: any) => {
-      const response = await apiRequest("POST", "/api/profile/portfolio", portfolioData);
+      const response = await apiRequest("/api/profile/portfolio", "POST", portfolioData);
       return response.json();
     },
     onSuccess: () => {

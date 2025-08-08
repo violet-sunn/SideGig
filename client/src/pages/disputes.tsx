@@ -72,7 +72,7 @@ export default function Disputes() {
 
   const createDisputeMutation = useMutation({
     mutationFn: async (disputeData: any) => {
-      const response = await apiRequest("POST", "/api/disputes", disputeData);
+      const response = await apiRequest("/api/disputes", "POST", disputeData);
       return response.json();
     },
     onSuccess: () => {

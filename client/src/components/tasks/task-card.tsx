@@ -55,7 +55,7 @@ export default function TaskCard({ task, showBidButton = false, showClientInfo =
 
   const submitBidMutation = useMutation({
     mutationFn: async (bidInfo: any) => {
-      const response = await apiRequest("POST", "/api/bids", bidInfo);
+      const response = await apiRequest("/api/bids", "POST", bidInfo);
       return response.json();
     },
     onSuccess: () => {
