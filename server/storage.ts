@@ -245,6 +245,14 @@ export class DatabaseStorage implements IStorage {
     return newBid;
   }
 
+  async getBid(id: string): Promise<Bid | undefined> {
+    const [bid] = await db
+      .select()
+      .from(bids)
+      .where(eq(bids.id, id));
+    return bid;
+  }
+
   async getBidsByTask(taskId: string): Promise<Bid[]> {
     return await db
       .select()
@@ -261,7 +269,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(bids.createdAt));
   }
 
-  async getPendingBidsForClient(clientId: string): Promise<Bid[]> {
+  async getPendingBidsForClient(clientId: string): Promise<any[]> {
     return await db
       .select({
         id: bids.id,
@@ -273,6 +281,9 @@ export class DatabaseStorage implements IStorage {
         status: bids.status,
         createdAt: bids.createdAt,
         updatedAt: bids.updatedAt,
+        counterOfferAmount: bids.counterOfferAmount,
+        counterOfferDeadline: bids.counterOfferDeadline,
+        counterOfferMessage: bids.counterOfferMessage,
         task: {
           id: tasks.id,
           title: tasks.title,
@@ -419,7 +430,7 @@ export class DatabaseStorage implements IStorage {
           taskId,
           taskTitle: task?.title,
           lastMessage: lastMessage.content,
-          lastMessageTime: lastMessage.createdAt,
+          lastMessageTime: lastMessage.createdAt || new Date(),
           unreadCount: unreadResult.count,
           task,
           otherUser,
@@ -427,9 +438,11 @@ export class DatabaseStorage implements IStorage {
       })
     );
 
-    return conversationsWithDetails.sort((a, b) => 
-      new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime()
-    );
+    return conversationsWithDetails.sort((a, b) => {
+      const dateA = a.lastMessageTime ? new Date(a.lastMessageTime) : new Date(0);
+      const dateB = b.lastMessageTime ? new Date(b.lastMessageTime) : new Date(0);
+      return dateB.getTime() - dateA.getTime();
+    });
   }
 
   async markMessagesAsRead(taskId: string, userId: string): Promise<void> {
@@ -607,23 +620,36 @@ export class DatabaseStorage implements IStorage {
   // Admin operations
   async getAllUsers(page: number = 1, limit: number = 20, search?: string, role?: string): Promise<any[]> {
     const offset = (page - 1) * limit;
-    let query = db.select().from(users);
-
+    
+    // Build where conditions array
+    const conditions: any[] = [];
+    
     if (search) {
-      query = query.where(
-        or(
-          sql`${users.firstName} ILIKE ${`%${search}%`}`,
-          sql`${users.lastName} ILIKE ${`%${search}%`}`,
-          sql`${users.email} ILIKE ${`%${search}%`}`
-        )
-      );
+      conditions.push(or(
+        sql`${users.firstName} ILIKE ${`%${search}%`}`,
+        sql`${users.lastName} ILIKE ${`%${search}%`}`,
+        sql`${users.email} ILIKE ${`%${search}%`}`
+      ));
     }
-
+    
     if (role && role !== 'all') {
-      query = query.where(eq(users.role, role as any));
+      conditions.push(eq(users.role, role as any));
     }
-
-    return await query.limit(limit).offset(offset).orderBy(desc(users.createdAt));
+    
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    
+    if (whereClause) {
+      return await db.select().from(users)
+        .where(whereClause)
+        .limit(limit)
+        .offset(offset)
+        .orderBy(desc(users.createdAt));
+    } else {
+      return await db.select().from(users)
+        .limit(limit)
+        .offset(offset)
+        .orderBy(desc(users.createdAt));
+    }
   }
 
   async updateUserBlockStatus(userId: string, isBlocked: boolean): Promise<void> {
@@ -737,32 +763,57 @@ export class DatabaseStorage implements IStorage {
 
   async getAllTasks(page: number = 1, limit: number = 20, status?: string): Promise<any[]> {
     const offset = (page - 1) * limit;
-    let query = db
-      .select({
-        id: tasks.id,
-        title: tasks.title,
-        description: tasks.description,
-        budget: tasks.budget,
-        status: tasks.status,
-        category: tasks.category,
-        clientId: tasks.clientId,
-        assignedFreelancerId: tasks.assignedFreelancerId,
-        createdAt: tasks.createdAt,
-        client: {
-          id: users.id,
-          firstName: users.firstName,
-          lastName: users.lastName,
-          email: users.email,
-        }
-      })
-      .from(tasks)
-      .innerJoin(users, eq(tasks.clientId, users.id));
-
+    
     if (status && status !== 'all') {
-      query = query.where(eq(tasks.status, status as any));
+      return await db
+        .select({
+          id: tasks.id,
+          title: tasks.title,
+          description: tasks.description,
+          budget: tasks.budget,
+          status: tasks.status,
+          category: tasks.category,
+          clientId: tasks.clientId,
+          assignedFreelancerId: tasks.assignedFreelancerId,
+          createdAt: tasks.createdAt,
+          client: {
+            id: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            email: users.email,
+          }
+        })
+        .from(tasks)
+        .innerJoin(users, eq(tasks.clientId, users.id))
+        .where(eq(tasks.status, status as any))
+        .limit(limit)
+        .offset(offset)
+        .orderBy(desc(tasks.createdAt));
+    } else {
+      return await db
+        .select({
+          id: tasks.id,
+          title: tasks.title,
+          description: tasks.description,
+          budget: tasks.budget,
+          status: tasks.status,
+          category: tasks.category,
+          clientId: tasks.clientId,
+          assignedFreelancerId: tasks.assignedFreelancerId,
+          createdAt: tasks.createdAt,
+          client: {
+            id: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            email: users.email,
+          }
+        })
+        .from(tasks)
+        .innerJoin(users, eq(tasks.clientId, users.id))
+        .limit(limit)
+        .offset(offset)
+        .orderBy(desc(tasks.createdAt));
     }
-
-    return await query.limit(limit).offset(offset).orderBy(desc(tasks.createdAt));
   }
 
   // Development helpers

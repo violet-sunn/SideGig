@@ -22,6 +22,7 @@ import {
   LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import NotificationBell from "@/components/notifications/notification-bell";
 
 interface SidebarProps {
   userRole: "client" | "freelancer";
@@ -75,25 +76,32 @@ export default function Sidebar({ userRole }: SidebarProps) {
       {/* User Profile */}
       <div className="px-3 py-6">
         <div className={cn(
-          "flex items-center p-3 rounded-lg",
+          "flex items-center justify-between p-3 rounded-lg",
           userRole === "client" ? "bg-blue-50" : "bg-green-50"
         )}>
-          <Avatar className="h-10 w-10 mr-3">
-            <AvatarImage src={user?.profileImageUrl || ""} />
-            <AvatarFallback>
-              {getInitials(user?.firstName, user?.lastName)}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="font-medium text-gray-900">
-              {user?.firstName && user?.lastName 
-                ? `${user.firstName} ${user.lastName}`
-                : user?.email?.split("@")[0] || "Пользователь"
-              }
-            </p>
-            <p className="text-sm text-gray-500">
-              {userRole === "client" ? "Заказчик" : "Фрилансер"}
-            </p>
+          <div className="flex items-center">
+            <Avatar className="h-10 w-10 mr-3">
+              <AvatarImage src={user?.profileImageUrl || ""} />
+              <AvatarFallback>
+                {getInitials(user?.firstName, user?.lastName)}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-medium text-gray-900">
+                {user?.firstName && user?.lastName 
+                  ? `${user.firstName} ${user.lastName}`
+                  : user?.email?.split("@")[0] || "Пользователь"
+                }
+              </p>
+              <p className="text-sm text-gray-500">
+                {userRole === "client" ? "Заказчик" : "Фрилансер"}
+              </p>
+            </div>
+          </div>
+          
+          {/* Notification Bell */}
+          <div className="ml-2">
+            <NotificationBell />
           </div>
         </div>
       </div>

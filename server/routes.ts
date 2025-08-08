@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, isAdmin, isModerator } from "./replitAuth";
-import { setupWebSocketServer } from "./notifications";
+import { setupWebSocketServer, NotificationService } from "./notifications";
 import { z } from "zod";
 import {
   insertTaskSchema,
@@ -213,7 +213,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { status, freelancerId } = req.body;
       
+      // Get task details before updating
+      const task = await storage.getTask(id);
+      
       await storage.updateTaskStatus(id, status, freelancerId);
+      
+      // Send notifications based on status change
+      if (task) {
+        if (status === "completed" && task.freelancerId) {
+          const freelancer = await storage.getUser(task.freelancerId);
+          if (freelancer) {
+            await NotificationService.notifyTaskCompleted(
+              task.id,
+              task.clientId,
+              `${freelancer.firstName} ${freelancer.lastName}`,
+              task.title
+            );
+          }
+        }
+      }
+      
       res.json({ success: true });
     } catch (error) {
       console.error("Error updating task status:", error);
@@ -254,6 +273,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const bid = await storage.createBid(bidData);
+      
+      // Get task and freelancer details for notification
+      const task = await storage.getTask(bid.taskId);
+      const freelancer = await storage.getUser(userId);
+      
+      if (task && freelancer) {
+        // Notify client about new bid
+        await NotificationService.notifyNewBid(
+          task.id,
+          task.clientId,
+          `${freelancer.firstName} ${freelancer.lastName}`,
+          bid.amount.toString()
+        );
+      }
+      
       res.json(bid);
     } catch (error) {
       console.error("Error creating bid:", error);
@@ -304,11 +338,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { status } = req.body;
       
+      // Get bid details before updating for notification
+      const bid = await storage.getBid(id);
+      const task = bid ? await storage.getTask(bid.taskId) : null;
+      const client = bid ? await storage.getUser(getEffectiveUserId(req)) : null;
+      
       if (status === "accepted") {
         // Use special acceptBid method that also assigns freelancer to task
         await storage.acceptBid(id);
+        
+        // Notify freelancer about bid acceptance
+        if (bid && task && client) {
+          await NotificationService.notifyBidAccepted(
+            task.id,
+            bid.freelancerId,
+            `${client.firstName} ${client.lastName}`,
+            task.title
+          );
+        }
+      } else if (status === "rejected") {
+        // For rejected status, update and notify
+        await storage.updateBidStatus(id, status);
+        
+        // Notify freelancer about bid rejection
+        if (bid && task && client) {
+          await NotificationService.notifyBidRejected(
+            task.id,
+            bid.freelancerId,
+            `${client.firstName} ${client.lastName}`,
+            task.title
+          );
+        }
       } else {
-        // For rejected or other statuses, just update bid status
+        // For other statuses, just update bid status
         await storage.updateBidStatus(id, status);
       }
       
@@ -329,6 +391,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const message = await storage.createMessage(messageData);
+      
+      // Get task and sender details for notification
+      const task = await storage.getTask(message.taskId);
+      const sender = await storage.getUser(userId);
+      
+      if (task && sender) {
+        // Determine receiver - if sender is client, notify freelancer, and vice versa
+        const receiverId = task.clientId === userId ? task.freelancerId : task.clientId;
+        
+        if (receiverId) {
+          await NotificationService.notifyNewMessage(
+            task.id,
+            receiverId,
+            `${sender.firstName} ${sender.lastName}`,
+            task.title
+          );
+        }
+      }
+      
       res.json(message);
     } catch (error) {
       console.error("Error creating message:", error);
@@ -408,6 +489,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const review = await storage.createReview(reviewData);
+      
+      // Get task and reviewer details for notification
+      const task = await storage.getTask(review.taskId);
+      const reviewer = await storage.getUser(userId);
+      
+      if (task && reviewer) {
+        await NotificationService.notifyReviewReceived(
+          task.id,
+          review.revieweeId,
+          `${reviewer.firstName} ${reviewer.lastName}`,
+          review.rating,
+          task.title
+        );
+      }
+      
       res.json(review);
     } catch (error) {
       console.error("Error creating review:", error);
@@ -436,6 +532,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const dispute = await storage.createDispute(disputeData);
+      
+      // Get task and initiator details for notification
+      const task = await storage.getTask(dispute.taskId);
+      const initiator = await storage.getUser(userId);
+      
+      if (task && initiator) {
+        // Determine defendant - if initiator is client, notify freelancer, and vice versa
+        const defendantId = task.clientId === userId ? task.freelancerId : task.clientId;
+        
+        if (defendantId) {
+          await NotificationService.notifyDisputeCreated(
+            dispute.id,
+            defendantId,
+            `${initiator.firstName} ${initiator.lastName}`,
+            task.title
+          );
+        }
+      }
+      
       res.json(dispute);
     } catch (error) {
       console.error("Error creating dispute:", error);
