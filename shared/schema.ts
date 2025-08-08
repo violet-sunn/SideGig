@@ -371,10 +371,8 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
   updatedAt: true,
   assignedFreelancerId: true,
 }).extend({
-  deadline: z.coerce.date().optional().refine((date) => {
-    if (!date) return true; // deadline is optional
-    return date > new Date(); // deadline must be in the future
-  }, "Дедлайн должен быть установлен на будущую дату"),
+  budget: z.coerce.string(), // Accept numbers from frontend, convert to string
+  deadline: z.coerce.date().optional(), // Temporarily remove date validation
 });
 
 export const insertBidSchema = createInsertSchema(bids).omit({

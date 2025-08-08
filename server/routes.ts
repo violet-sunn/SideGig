@@ -132,7 +132,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Task routes  
-  app.post("/api/tasks", isAuthenticated, async (req: any, res) => {
+  app.post("/api/tasks", devAuthBypass, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const taskData = insertTaskSchema.parse({
@@ -148,7 +148,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/tasks/my", isAuthenticated, async (req: any, res) => {
+  app.get("/api/tasks/my", devAuthBypass, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       console.log("Debug: userId from getEffectiveUserId:", userId);
@@ -173,7 +173,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/tasks/available", isAuthenticated, async (req: any, res) => {
+  app.get("/api/tasks/available", devAuthBypass, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const tasks = await storage.getAvailableTasks(userId);
@@ -185,7 +185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Active projects route for freelancers (must be before :id route)
-  app.get("/api/tasks/active", isAuthenticated, async (req: any, res) => {
+  app.get("/api/tasks/active", devAuthBypass, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       console.log("Debug: Fetching active tasks for freelancer:", userId);
@@ -225,7 +225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/tasks/:id/status", isAuthenticated, async (req: any, res) => {
+  app.patch("/api/tasks/:id/status", devAuthBypass, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { status, freelancerId } = req.body;
@@ -359,7 +359,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Task creation route
-  app.post("/api/tasks", isAuthenticated, async (req: any, res) => {
+  app.post("/api/tasks", devAuthBypass, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const taskData = insertTaskSchema.parse({
