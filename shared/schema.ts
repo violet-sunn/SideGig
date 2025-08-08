@@ -103,6 +103,7 @@ export const tasks = pgTable("tasks", {
   clientId: varchar("client_id").notNull().references(() => users.id),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description").notNull(),
+  definitionOfDone: text("definition_of_done"),
   category: varchar("category").notNull(),
   budget: decimal("budget", { precision: 10, scale: 2 }).notNull(),
   deadline: timestamp("deadline"),

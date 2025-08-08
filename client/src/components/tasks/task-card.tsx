@@ -223,6 +223,18 @@ export default function TaskCard({ task, showBidButton = false, showClientInfo =
 
       <CardContent className="pt-0">
         <p className="text-gray-700 mb-4 line-clamp-3">{task.description}</p>
+        
+        {task.definitionOfDone && (
+          <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
+            <div className="flex items-center mb-2">
+              <AlertCircle className="h-4 w-4 text-green-600 mr-2" />
+              <span className="font-medium text-green-800">Критерии готовности</span>
+            </div>
+            <div className="text-sm text-green-700 whitespace-pre-line">
+              {task.definitionOfDone}
+            </div>
+          </div>
+        )}
 
         {task.skills && task.skills.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">

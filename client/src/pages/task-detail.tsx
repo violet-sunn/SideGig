@@ -32,7 +32,8 @@ import {
   XCircle,
   ThumbsUp,
   ThumbsDown,
-  Settings
+  Settings,
+  AlertCircle
 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -359,6 +360,18 @@ export default function TaskDetail() {
                           {task.description}
                         </p>
                         
+                        {task.definitionOfDone && (
+                          <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
+                            <div className="flex items-center mb-3">
+                              <AlertCircle className="h-5 w-5 text-green-600 mr-2" />
+                              <h4 className="font-medium text-green-800">Критерии готовности</h4>
+                            </div>
+                            <div className="text-sm text-green-700 whitespace-pre-line">
+                              {task.definitionOfDone}
+                            </div>
+                          </div>
+                        )}
+                        
                         {task.skills && task.skills.length > 0 && (
                           <div className="border-t pt-4">
                             <h4 className="font-medium text-gray-900 mb-3">
@@ -404,8 +417,8 @@ export default function TaskDetail() {
                                 <Input
                                   id="deadline"
                                   type="date"
-                                  value={bidDeadline}
-                                  onChange={(e) => setBidDeadline(e.target.value)}
+                                  value={bidDeadline || ""}
+                                  onChange={(e) => setBidDeadline(e.target.value || null)}
                                   min={new Date().toISOString().split("T")[0]}
                                   required
                                 />

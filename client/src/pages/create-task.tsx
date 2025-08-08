@@ -51,6 +51,7 @@ export default function CreateTask() {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
+    definitionOfDone: "",
     category: "",
     budget: "",
     deadline: null as Date | null,
@@ -149,6 +150,7 @@ export default function CreateTask() {
     createTaskMutation.mutate({
       title: formData.title,
       description: formData.description,
+      definitionOfDone: formData.definitionOfDone,
       category: formData.category,
       budget: parseFloat(formData.budget),
       deadline: formData.deadline ? formData.deadline.toISOString() : null,
@@ -293,6 +295,25 @@ export default function CreateTask() {
                         placeholder="Подробно опишите что нужно сделать, какие требования к результату, какие материалы предоставите..."
                         className="mt-2 min-h-[120px]"
                         required
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <Label htmlFor="definitionOfDone">Критерии готовности</Label>
+                      <p className="text-sm text-gray-600 mt-1 mb-2">
+                        Перечислите конкретные критерии, по которым работа будет считаться выполненной
+                      </p>
+                      <Textarea
+                        id="definitionOfDone"
+                        value={formData.definitionOfDone}
+                        onChange={(e) => setFormData(prev => ({ ...prev, definitionOfDone: e.target.value }))}
+                        placeholder="Например:
+• Сайт адаптирован под все устройства (мобильные, планшеты, десктопы)
+• Реализованы все страницы согласно техническому заданию
+• Настроена система оплаты через Stripe
+• Проведено тестирование на разных браузерах
+• Код загружен в GitHub с документацией"
+                        className="mt-2 min-h-[140px] font-mono text-sm"
                       />
                     </div>
 
