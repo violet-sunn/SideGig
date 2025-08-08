@@ -209,7 +209,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/tasks/:id", isAuthenticated, async (req: any, res) => {
+  app.get("/api/tasks/:id", devAuthBypass, async (req: any, res) => {
     try {
       const { id } = req.params;
       const task = await storage.getTask(id);
@@ -380,7 +380,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Bid routes
-  app.post("/api/bids", isAuthenticated, async (req: any, res) => {
+  app.post("/api/bids", devAuthBypass, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       // Convert deadline string to Date
@@ -417,7 +417,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/bids/task/:taskId", isAuthenticated, async (req: any, res) => {
+  app.get("/api/bids/task/:taskId", devAuthBypass, async (req: any, res) => {
     try {
       const { taskId } = req.params;
       const bids = await storage.getBidsByTask(taskId);
@@ -451,7 +451,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/bids/:id/status", isAuthenticated, async (req: any, res) => {
+  app.patch("/api/bids/:id/status", devAuthBypass, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { status } = req.body;
@@ -500,7 +500,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Accept bid endpoint (alternative route for UI compatibility)
-  app.patch("/api/bids/:id/accept", isAuthenticated, async (req: any, res) => {
+  app.patch("/api/bids/:id/accept", devAuthBypass, async (req: any, res) => {
     try {
       const { id } = req.params;
       
@@ -530,7 +530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Message routes
-  app.post("/api/messages", isAuthenticated, async (req: any, res) => {
+  app.post("/api/messages", devAuthBypass, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const messageData = insertMessageSchema.parse({
@@ -565,7 +565,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/messages/task/:taskId", isAuthenticated, async (req: any, res) => {
+  app.get("/api/messages/task/:taskId", devAuthBypass, async (req: any, res) => {
     try {
       const { taskId } = req.params;
       console.log(`Debug: Fetching messages for task ${taskId}`);
