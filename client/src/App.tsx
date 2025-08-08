@@ -27,6 +27,11 @@ import Onboarding from "@/pages/onboarding";
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
 
+  // Temporary debug - display user data
+  if (user) {
+    console.log('App.tsx - user.onboardingCompleted:', user.onboardingCompleted, typeof user.onboardingCompleted);
+  }
+
   if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center">

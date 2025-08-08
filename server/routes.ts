@@ -49,15 +49,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/auth/user", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
-      console.log(`Debug: Getting user data for effective user ID: ${userId}`);
-      
       const user = await storage.getUser(userId);
-      if (user) {
-        console.log(`Found user: ${user.firstName} ${user.lastName}, role: ${user.role}, onboardingCompleted: ${user.onboardingCompleted}`);
-        console.log(`Full user object:`, JSON.stringify(user, null, 2));
-      } else {
-        console.log(`User ${userId} not found`);
-      }
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
