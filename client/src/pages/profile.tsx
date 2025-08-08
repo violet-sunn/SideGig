@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { DatePicker } from "@/components/ui/date-picker";
+import { NumberInput } from "@/components/ui/number-input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -73,7 +75,7 @@ export default function Profile() {
     technologies: "",
     projectUrl: "",
     imageUrl: "",
-    completedAt: ""
+    completedAt: null as Date | null
   });
   const [showAddPortfolio, setShowAddPortfolio] = useState(false);
 
@@ -185,6 +187,20 @@ export default function Profile() {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate hourly rate if provided
+    if (userRole === "freelancer" && profileData.hourlyRate) {
+      const rate = parseFloat(profileData.hourlyRate);
+      if (isNaN(rate) || rate < 0) {
+        toast({
+          title: "Ошибка",
+          description: "Укажите корректную стоимость в час",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+    
     updateProfileMutation.mutate(profileData);
   };
 
@@ -196,7 +212,7 @@ export default function Profile() {
     onSuccess: () => {
       toast({ title: "Успешно!", description: "Проект добавлен в портфолио" });
       setShowAddPortfolio(false);
-      setNewPortfolioItem({ title: "", description: "", technologies: "", projectUrl: "", imageUrl: "", completedAt: "" });
+      setNewPortfolioItem({ title: "", description: "", technologies: "", projectUrl: "", imageUrl: "", completedAt: null });
       queryClient.invalidateQueries({ queryKey: ["/api/profile/portfolio"] });
     },
     onError: (error) => {
@@ -238,7 +254,27 @@ export default function Profile() {
       toast({ title: "Ошибка", description: "Заполните обязательные поля", variant: "destructive" });
       return;
     }
-    addPortfolioItemMutation.mutate(newPortfolioItem);
+
+    // Validate completion date is not in the future
+    if (newPortfolioItem.completedAt) {
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
+      if (newPortfolioItem.completedAt > today) {
+        toast({
+          title: "Ошибка",
+          description: "Дата завершения не может быть в будущем",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    const portfolioData = {
+      ...newPortfolioItem,
+      completedAt: newPortfolioItem.completedAt ? newPortfolioItem.completedAt.toISOString() : null
+    };
+    
+    addPortfolioItemMutation.mutate(portfolioData);
   };
 
   const getInitials = (firstName?: string | null, lastName?: string | null) => {
@@ -394,11 +430,49 @@ export default function Profile() {
                         />
                       </div>
 
-                      
+                      <div>
+                        <Label htmlFor="title">
+                          {userRole === "client" ? "Должность" : "Специализация"}
+                        </Label>
+                        <Input
+                          id="title"
+                          value={profileData.title}
+                          onChange={(e) => setProfileData({ ...profileData, title: e.target.value })}
+                          disabled={!isEditing}
+                          placeholder={
+                            userRole === "client" 
+                              ? "Например: СТО, Менеджер проектов"
+                              : "Например: Full-stack разработчик"
+                          }
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="location">Местоположение</Label>
+                        <Input
+                          id="location"
+                          value={profileData.location}
+                          onChange={(e) => setProfileData({ ...profileData, location: e.target.value })}
+                          disabled={!isEditing}
+                          placeholder="Город, страна"
+                        />
+                      </div>
 
                       {userRole === "freelancer" && (
                         <>
-                          
+                          <div>
+                            <Label htmlFor="hourlyRate">Стоимость в час (₽)</Label>
+                            <NumberInput
+                              id="hourlyRate"
+                              value={profileData.hourlyRate}
+                              onChange={(value) => setProfileData({ ...profileData, hourlyRate: value })}
+                              disabled={!isEditing}
+                              placeholder="1500"
+                              min={0}
+                              max={50000}
+                              currency={true}
+                            />
+                          </div>
 
                           <div>
                             <Label htmlFor="skills">Навыки</Label>
@@ -501,11 +575,12 @@ export default function Profile() {
                             </div>
                             <div>
                               <Label htmlFor="portfolio-date">Дата завершения</Label>
-                              <Input
+                              <DatePicker
                                 id="portfolio-date"
-                                type="date"
-                                value={newPortfolioItem.completedAt}
-                                onChange={(e) => setNewPortfolioItem({...newPortfolioItem, completedAt: e.target.value})}
+                                value={newPortfolioItem.completedAt || undefined}
+                                onChange={(date) => setNewPortfolioItem({...newPortfolioItem, completedAt: date || null})}
+                                placeholder="Выберите дату завершения"
+                                maxDate={new Date()}
                               />
                             </div>
                             <div className="flex justify-end space-x-2 pt-4">
@@ -514,7 +589,7 @@ export default function Profile() {
                                 variant="outline"
                                 onClick={() => {
                                   setShowAddPortfolio(false);
-                                  setNewPortfolioItem({ title: "", description: "", technologies: "", projectUrl: "", imageUrl: "", completedAt: "" });
+                                  setNewPortfolioItem({ title: "", description: "", technologies: "", projectUrl: "", imageUrl: "", completedAt: null });
                                 }}
                               >
                                 Отмена

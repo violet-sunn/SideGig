@@ -15,6 +15,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
+import { NumberInput } from "@/components/ui/number-input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { 
@@ -42,7 +44,7 @@ export default function BidCard({ bid, isOwner = false, canAccept = false, canRe
   const [isCounterOfferOpen, setIsCounterOfferOpen] = useState(false);
   const [counterOffer, setCounterOffer] = useState({
     amount: bid.amount || "",
-    deadline: bid.deadline ? new Date(bid.deadline).toISOString().split("T")[0] : "",
+    deadline: bid.deadline ? new Date(bid.deadline) : null as Date | null,
     message: "",
   });
 
@@ -132,9 +134,31 @@ export default function BidCard({ bid, isOwner = false, canAccept = false, canRe
       return;
     }
 
+    // Validate amount is positive
+    if (parseFloat(counterOffer.amount) <= 0) {
+      toast({
+        title: "Ошибка",
+        description: "Укажите корректную сумму",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate deadline is in the future
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (counterOffer.deadline <= today) {
+      toast({
+        title: "Ошибка",
+        description: "Срок должен быть в будущем",
+        variant: "destructive",
+      });
+      return;
+    }
+
     submitCounterOfferMutation.mutate({
       counterOfferAmount: parseFloat(counterOffer.amount),
-      counterOfferDeadline: new Date(counterOffer.deadline).toISOString(),
+      counterOfferDeadline: counterOffer.deadline.toISOString(),
       counterOfferMessage: counterOffer.message,
     });
   };
@@ -270,23 +294,24 @@ export default function BidCard({ bid, isOwner = false, canAccept = false, canRe
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                               <Label htmlFor="counter-amount">Ваша цена (₽)</Label>
-                              <Input
+                              <NumberInput
                                 id="counter-amount"
-                                type="number"
                                 value={counterOffer.amount}
-                                onChange={(e) => setCounterOffer(prev => ({ ...prev, amount: e.target.value }))}
-                                min="0"
+                                onChange={(value) => setCounterOffer(prev => ({ ...prev, amount: value }))}
+                                min={1}
+                                max={10000000}
+                                currency={true}
                                 required
                               />
                             </div>
                             <div>
                               <Label htmlFor="counter-deadline">Срок выполнения</Label>
-                              <Input
+                              <DatePicker
                                 id="counter-deadline"
-                                type="date"
-                                value={counterOffer.deadline}
-                                onChange={(e) => setCounterOffer(prev => ({ ...prev, deadline: e.target.value }))}
-                                min={new Date().toISOString().split("T")[0]}
+                                value={counterOffer.deadline || undefined}
+                                onChange={(date) => setCounterOffer(prev => ({ ...prev, deadline: date || null }))}
+                                placeholder="Выберите срок"
+                                minDate={new Date(Date.now() + 24 * 60 * 60 * 1000)}
                                 required
                               />
                             </div>

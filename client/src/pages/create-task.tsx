@@ -9,6 +9,8 @@ import Sidebar from "@/components/layout/sidebar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
+import { NumberInput } from "@/components/ui/number-input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -51,7 +53,7 @@ export default function CreateTask() {
     description: "",
     category: "",
     budget: "",
-    deadline: "",
+    deadline: null as Date | null,
     priority: "normal",
     skills: [] as string[],
   });
@@ -121,11 +123,10 @@ export default function CreateTask() {
 
     // Validate deadline is not in the past
     if (formData.deadline) {
-      const selectedDate = new Date(formData.deadline);
       const today = new Date();
       today.setHours(0, 0, 0, 0); // Reset time to start of day
       
-      if (selectedDate <= today) {
+      if (formData.deadline <= today) {
         toast({
           title: "Ошибка",
           description: "Дедлайн должен быть установлен на будущую дату",
@@ -135,12 +136,22 @@ export default function CreateTask() {
       }
     }
 
+    // Validate budget is a positive number
+    if (!formData.budget || parseFloat(formData.budget) <= 0) {
+      toast({
+        title: "Ошибка",
+        description: "Укажите корректный бюджет больше 0",
+        variant: "destructive",
+      });
+      return;
+    }
+
     createTaskMutation.mutate({
       title: formData.title,
       description: formData.description,
       category: formData.category,
       budget: parseFloat(formData.budget),
-      deadline: formData.deadline ? new Date(formData.deadline).toISOString() : null,
+      deadline: formData.deadline ? formData.deadline.toISOString() : null,
       priority: formData.priority,
       skills: formData.skills,
     });
@@ -227,28 +238,31 @@ export default function CreateTask() {
 
                     <div>
                       <Label htmlFor="budget">Бюджет (₽) *</Label>
-                      <Input
+                      <NumberInput
                         id="budget"
-                        type="number"
                         value={formData.budget}
-                        onChange={(e) => setFormData(prev => ({ ...prev, budget: e.target.value }))}
+                        onChange={(value) => setFormData(prev => ({ ...prev, budget: value }))}
                         placeholder="50000"
                         className="mt-2"
-                        min="0"
+                        min={1}
+                        max={10000000}
+                        currency={true}
                         required
                       />
                     </div>
 
                     <div>
                       <Label htmlFor="deadline">Срок выполнения</Label>
-                      <Input
-                        id="deadline"
-                        type="date"
-                        value={formData.deadline}
-                        onChange={(e) => setFormData(prev => ({ ...prev, deadline: e.target.value }))}
-                        className="mt-2"
-                        min={new Date().toISOString().split("T")[0]}
-                      />
+                      <div className="mt-2">
+                        <DatePicker
+                          id="deadline"
+                          value={formData.deadline || undefined}
+                          onChange={(date) => setFormData(prev => ({ ...prev, deadline: date || null }))}
+                          placeholder="Выберите срок выполнения"
+                          minDate={new Date(Date.now() + 24 * 60 * 60 * 1000)} // Tomorrow
+                          className="w-full"
+                        />
+                      </div>
                     </div>
 
                     <div>

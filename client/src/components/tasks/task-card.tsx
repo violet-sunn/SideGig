@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
+import { NumberInput } from "@/components/ui/number-input";
 import { Label } from "@/components/ui/label";
 import { 
   Calendar, 
@@ -42,7 +44,7 @@ export default function TaskCard({ task, showBidButton = false, showClientInfo =
   const [responseType, setResponseType] = useState<"accept" | "propose">("accept");
   const [bidData, setBidData] = useState({
     amount: "",
-    deadline: "",
+    deadline: null as Date | null,
     proposal: "",
   });
 
@@ -64,7 +66,7 @@ export default function TaskCard({ task, showBidButton = false, showClientInfo =
         description: "Заявка отправлена",
       });
       setIsDialogOpen(false);
-      setBidData({ amount: "", deadline: "", proposal: "" });
+      setBidData({ amount: "", deadline: null, proposal: "" });
       queryClient.invalidateQueries({ queryKey: ["/api/bids/my"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/available"] });
     },
@@ -110,10 +112,32 @@ export default function TaskCard({ task, showBidButton = false, showClientInfo =
         return;
       }
 
+      // Validate amount is positive
+      if (parseFloat(bidData.amount) <= 0) {
+        toast({
+          title: "Ошибка",
+          description: "Укажите корректную сумму больше 0",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate deadline is in the future
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (bidData.deadline <= today) {
+        toast({
+          title: "Ошибка",
+          description: "Срок выполнения должен быть в будущем",
+          variant: "destructive",
+        });
+        return;
+      }
+
       submitBidMutation.mutate({
         taskId: task.id,
         amount: parseFloat(bidData.amount),
-        deadline: new Date(bidData.deadline).toISOString(),
+        deadline: bidData.deadline.toISOString(),
         proposal: bidData.proposal,
       });
     }
@@ -305,24 +329,25 @@ export default function TaskCard({ task, showBidButton = false, showClientInfo =
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="amount">Ваша цена (₽) *</Label>
-                          <Input
+                          <NumberInput
                             id="amount"
-                            type="number"
                             value={bidData.amount}
-                            onChange={(e) => setBidData(prev => ({ ...prev, amount: e.target.value }))}
+                            onChange={(value) => setBidData(prev => ({ ...prev, amount: value }))}
                             placeholder="Введите сумму"
-                            min="0"
+                            min={1}
+                            max={10000000}
+                            currency={true}
                             required
                           />
                         </div>
                         <div>
                           <Label htmlFor="deadline">Срок выполнения *</Label>
-                          <Input
+                          <DatePicker
                             id="deadline"
-                            type="date"
-                            value={bidData.deadline}
-                            onChange={(e) => setBidData(prev => ({ ...prev, deadline: e.target.value }))}
-                            min={new Date().toISOString().split("T")[0]}
+                            value={bidData.deadline || undefined}
+                            onChange={(date) => setBidData(prev => ({ ...prev, deadline: date || null }))}
+                            placeholder="Выберите срок"
+                            minDate={new Date(Date.now() + 24 * 60 * 60 * 1000)}
                             required
                           />
                         </div>

@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
+import { NumberInput } from "@/components/ui/number-input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -79,7 +81,7 @@ export default function TaskDetail() {
   const { toast } = useToast();
   
   const [bidAmount, setBidAmount] = useState("");
-  const [bidDeadline, setBidDeadline] = useState("");
+  const [bidDeadline, setBidDeadline] = useState<Date | null>(null);
   const [bidProposal, setBidProposal] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
   const [newMessage, setNewMessage] = useState("");
@@ -112,7 +114,7 @@ export default function TaskDetail() {
       queryClient.invalidateQueries({ queryKey: ["/api/bids/task", taskId] });
       queryClient.invalidateQueries({ queryKey: ["/api/bids/my"] });
       setBidAmount("");
-      setBidDeadline("");
+      setBidDeadline(null);
       setBidProposal("");
     },
     onError: (error) => {
