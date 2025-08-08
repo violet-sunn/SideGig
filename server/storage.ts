@@ -28,7 +28,7 @@ import {
   type InsertNotification,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, sql, count } from "drizzle-orm";
+import { eq, desc, and, or, sql, count, isNotNull } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 export interface IStorage {
@@ -404,13 +404,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getConversations(userId: string): Promise<any[]> {
-    // Get unique task IDs where user has messages
+    // Get unique task IDs where user has messages AND task has an assigned freelancer
     const userMessages = await db
       .select({
         taskId: messages.taskId,
       })
       .from(messages)
-      .where(or(eq(messages.senderId, userId), eq(messages.receiverId, userId)))
+      .innerJoin(tasks, eq(messages.taskId, tasks.id))
+      .where(
+        and(
+          or(eq(messages.senderId, userId), eq(messages.receiverId, userId)),
+          isNotNull(tasks.assignedFreelancerId) // Only include tasks with assigned freelancer
+        )
+      )
       .groupBy(messages.taskId);
 
     // Get conversation details for each task

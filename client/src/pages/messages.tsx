@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Search, Send, Phone, Video, MoreVertical, Paperclip } from "lucide-react";
+import { Search, Send, Phone, Video, MoreVertical, Paperclip, Lock } from "lucide-react";
 import Sidebar from "@/components/layout/sidebar";
 
 export default function Messages() {
@@ -341,34 +341,50 @@ export default function Messages() {
 
             {/* Message Input */}
             <div className="bg-white border-t p-6">
-              <form onSubmit={handleSendMessage} className="flex items-end space-x-4">
-                <div className="flex-1">
-                  <Textarea
-                    placeholder="Введите сообщение..."
-                    value={messageText}
-                    onChange={(e) => setMessageText(e.target.value)}
-                    className="resize-none min-h-[60px] max-h-[120px]"
-                    onKeyPress={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessage(e as any);
-                      }
-                    }}
-                  />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button type="button" variant="ghost" size="icon">
-                    <Paperclip className="h-5 w-5" />
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    disabled={!messageText.trim() || sendMessageMutation.isPending}
-                    size="icon"
-                  >
-                    <Send className="h-5 w-5" />
-                  </Button>
-                </div>
-              </form>
+              {(() => {
+                const conversation = conversations?.find(c => c.taskId === selectedTaskId);
+                const isTaskCompleted = conversation?.task?.status === 'completed';
+                
+                if (isTaskCompleted) {
+                  return (
+                    <div className="bg-gray-50 rounded-lg p-4 text-center text-gray-500">
+                      <Lock className="h-5 w-5 mx-auto mb-2" />
+                      <p className="text-sm">Проект завершен. Отправка сообщений недоступна.</p>
+                    </div>
+                  );
+                }
+                
+                return (
+                  <form onSubmit={handleSendMessage} className="flex items-end space-x-4">
+                    <div className="flex-1">
+                      <Textarea
+                        placeholder="Введите сообщение..."
+                        value={messageText}
+                        onChange={(e) => setMessageText(e.target.value)}
+                        className="resize-none min-h-[60px] max-h-[120px]"
+                        onKeyPress={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSendMessage(e as any);
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button type="button" variant="ghost" size="icon">
+                        <Paperclip className="h-5 w-5" />
+                      </Button>
+                      <Button 
+                        type="submit" 
+                        disabled={!messageText.trim() || sendMessageMutation.isPending}
+                        size="icon"
+                      >
+                        <Send className="h-5 w-5" />
+                      </Button>
+                    </div>
+                  </form>
+                );
+              })()}
             </div>
           </>
         ) : (

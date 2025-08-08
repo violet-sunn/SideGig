@@ -33,7 +33,8 @@ import {
   ThumbsUp,
   ThumbsDown,
   Settings,
-  AlertCircle
+  AlertCircle,
+  Lock
 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -717,80 +718,114 @@ export default function TaskDetail() {
 
                   {/* Communication Tab */}
                   <TabsContent value="communication" className="space-y-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <MessageSquare className="h-5 w-5" />
-                          Сообщения по проекту
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
-                          {messagesLoading ? (
-                            <div className="text-center py-4">
-                              <div className="animate-spin w-6 h-6 border-2 border-gray-300 border-t-gray-600 rounded-full mx-auto mb-2"></div>
-                              <p className="text-gray-500">Загрузка сообщений...</p>
-                            </div>
-                          ) : messages.length > 0 ? (
-                            messages.map((message) => (
-                              <div key={message.id} className={`flex gap-3 ${
-                                message.senderId === user.id ? 'justify-end' : 'justify-start'
-                              }`}>
-                                <div className={`flex items-start gap-3 max-w-xs ${
-                                  message.senderId === user.id ? 'flex-row-reverse' : ''
+                    {!task.assignedFreelancerId ? (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <MessageSquare className="h-5 w-5" />
+                            Сообщения по проекту
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-center py-12 text-gray-500">
+                            <Users className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                            <h3 className="text-lg font-medium mb-2">Чат недоступен</h3>
+                            <p>Сообщения будут доступны после назначения исполнителя на проект</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <MessageSquare className="h-5 w-5" />
+                            Сообщения по проекту
+                            {task.status === 'completed' && (
+                              <Badge variant="secondary" className="ml-2 text-xs">
+                                Только просмотр
+                              </Badge>
+                            )}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
+                            {messagesLoading ? (
+                              <div className="text-center py-4">
+                                <div className="animate-spin w-6 h-6 border-2 border-gray-300 border-t-gray-600 rounded-full mx-auto mb-2"></div>
+                                <p className="text-gray-500">Загрузка сообщений...</p>
+                              </div>
+                            ) : messages.length > 0 ? (
+                              messages.map((message) => (
+                                <div key={message.id} className={`flex gap-3 ${
+                                  message.senderId === user.id ? 'justify-end' : 'justify-start'
                                 }`}>
-                                  <Avatar className="h-8 w-8 flex-shrink-0">
-                                    <AvatarImage src={message.sender?.profileImageUrl} />
-                                    <AvatarFallback className="text-xs">
-                                      {message.sender?.firstName?.[0] || 'U'}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <div className={`rounded-lg p-3 ${
-                                    message.senderId === user.id 
-                                      ? 'bg-primary text-primary-foreground' 
-                                      : 'bg-gray-100'
+                                  <div className={`flex items-start gap-3 max-w-xs ${
+                                    message.senderId === user.id ? 'flex-row-reverse' : ''
                                   }`}>
-                                    <p className="text-sm">{message.content}</p>
-                                    <p className={`text-xs mt-1 ${
+                                    <Avatar className="h-8 w-8 flex-shrink-0">
+                                      <AvatarImage src={message.sender?.profileImageUrl} />
+                                      <AvatarFallback className="text-xs">
+                                        {message.sender?.firstName?.[0] || 'U'}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <div className={`rounded-lg p-3 ${
                                       message.senderId === user.id 
-                                        ? 'text-primary-foreground/70' 
-                                        : 'text-gray-500'
+                                        ? 'bg-primary text-primary-foreground' 
+                                        : 'bg-gray-100'
                                     }`}>
-                                      {format(new Date(message.createdAt), 'HH:mm dd.MM')}
-                                    </p>
+                                      <p className="text-sm">{message.content}</p>
+                                      <p className={`text-xs mt-1 ${
+                                        message.senderId === user.id 
+                                          ? 'text-primary-foreground/70' 
+                                          : 'text-gray-500'
+                                      }`}>
+                                        {format(new Date(message.createdAt), 'HH:mm dd.MM')}
+                                      </p>
+                                    </div>
                                   </div>
                                 </div>
+                              ))
+                            ) : (
+                              <div className="text-center py-8 text-gray-500">
+                                <MessageSquare className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                                <p>Сообщений пока нет</p>
+                                {task.status !== 'completed' && (
+                                  <p className="text-sm mt-2">Начните общение, отправив первое сообщение</p>
+                                )}
                               </div>
-                            ))
+                            )}
+                          </div>
+
+                          {/* Message Input - only show if task is not completed */}
+                          {task.status !== 'completed' ? (
+                            <div className="border-t pt-4">
+                              <div className="flex gap-2">
+                                <Textarea
+                                  value={newMessage}
+                                  onChange={(e) => setNewMessage(e.target.value)}
+                                  placeholder="Напишите сообщение..."
+                                  rows={2}
+                                  className="flex-1"
+                                />
+                                <Button
+                                  onClick={() => sendMessageMutation.mutate(newMessage)}
+                                  disabled={!newMessage.trim() || sendMessageMutation.isPending}
+                                >
+                                  <Send className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
                           ) : (
-                            <div className="text-center py-8 text-gray-500">
-                              <MessageSquare className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                              <p>Сообщений пока нет</p>
-                              <p className="text-sm mt-2">Начните общение, отправив первое сообщение</p>
+                            <div className="border-t pt-4">
+                              <div className="bg-gray-50 rounded-lg p-4 text-center text-gray-500">
+                                <Lock className="h-5 w-5 mx-auto mb-2" />
+                                <p className="text-sm">Проект завершен. Отправка сообщений недоступна.</p>
+                              </div>
                             </div>
                           )}
-                        </div>
-
-                        {/* Message Input */}
-                        <div className="border-t pt-4">
-                          <div className="flex gap-2">
-                            <Textarea
-                              value={newMessage}
-                              onChange={(e) => setNewMessage(e.target.value)}
-                              placeholder="Напишите сообщение..."
-                              rows={2}
-                              className="flex-1"
-                            />
-                            <Button
-                              onClick={() => sendMessageMutation.mutate(newMessage)}
-                              disabled={!newMessage.trim() || sendMessageMutation.isPending}
-                            >
-                              <Send className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                        </CardContent>
+                      </Card>
+                    )}
                   </TabsContent>
                 </div>
 
