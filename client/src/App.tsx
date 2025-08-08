@@ -42,7 +42,7 @@ function Router() {
           <Route path="/" component={Landing} />
           <Route component={NotFound} />
         </>
-      ) : user && !user.role ? (
+      ) : user && !user.onboardingCompleted ? (
         <>
           <Route path="/onboarding" component={Onboarding} />
           <Route path="/*" component={() => {
