@@ -92,7 +92,7 @@ export default function Onboarding() {
             <Handshake className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Добро пожаловать в FreelanceHub!
+            Добро пожаловать в Gigly!
           </h1>
           <p className="text-gray-600">
             Давайте настроим ваш профиль для лучшего опыта работы

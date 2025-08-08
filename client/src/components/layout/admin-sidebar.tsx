@@ -49,7 +49,7 @@ export default function AdminSidebar({ user }: AdminSidebarProps) {
           </div>
           <div>
             <h2 className="font-semibold text-gray-900">Админ панель</h2>
-            <p className="text-sm text-gray-600">FreelanceHub</p>
+            <p className="text-sm text-gray-600">Gigly</p>
           </div>
         </div>
       </div>

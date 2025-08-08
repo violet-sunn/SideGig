@@ -39,7 +39,7 @@ export default function Navbar() {
               <div className="bg-primary text-white rounded-lg p-2 mr-3">
                 <Handshake className="h-6 w-6" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900">FreelanceHub</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Gigly</h1>
             </a>
           </Link>
 

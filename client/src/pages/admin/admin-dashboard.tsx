@@ -24,7 +24,7 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Админ панель</h1>
-        <p className="text-gray-600 mt-2">Управление платформой FreelanceHub</p>
+        <p className="text-gray-600 mt-2">Управление платформой Gigly</p>
       </div>
 
       {/* Stats Grid */}

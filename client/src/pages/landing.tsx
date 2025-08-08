@@ -17,7 +17,7 @@ export default function Landing() {
               <div className="bg-primary text-white rounded-lg p-2 mr-3">
                 <Handshake className="h-6 w-6" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900">FreelanceHub</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Gigly</h1>
             </div>
             <div className="flex items-center space-x-4">
               <Button 

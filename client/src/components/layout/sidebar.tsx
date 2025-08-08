@@ -68,7 +68,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
           <div className="bg-primary text-white rounded-lg p-2 mr-3">
             <Handshake className="h-5 w-5" />
           </div>
-          <h2 className="text-xl font-bold">FreelanceHub</h2>
+          <h2 className="text-xl font-bold">Gigly</h2>
         </div>
       </div>
 

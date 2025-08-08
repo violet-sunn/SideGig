@@ -1,8 +1,8 @@
-# FreelanceHub Platform
+# Gigly Platform
 
 ## Overview
 
-FreelanceHub is a comprehensive online platform that connects clients with freelancers for secure project collaboration. The platform features an escrow payment system, comprehensive messaging, bid management, reviews, and dispute resolution. Built as a full-stack web application with a React frontend and Express backend, it provides separate interfaces for clients and freelancers with role-based functionality.
+Gigly is a comprehensive online platform that connects clients with freelancers for secure project collaboration. The platform features an escrow payment system, comprehensive messaging, bid management, reviews, and dispute resolution. Built as a full-stack web application with a React frontend and Express backend, it provides separate interfaces for clients and freelancers with role-based functionality.
 
 ## User Preferences
 
