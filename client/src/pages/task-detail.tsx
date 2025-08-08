@@ -314,20 +314,33 @@ export default function TaskDetail() {
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <div className="border-b mb-6">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="overview" className="flex items-center gap-2">
-                    <Eye className="h-4 w-4" />
-                    Обзор
-                  </TabsTrigger>
-                  <TabsTrigger value="bids" className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    Заявки ({bids.length})
-                  </TabsTrigger>
-                  <TabsTrigger value="communication" className="flex items-center gap-2">
-                    <MessageSquare className="h-4 w-4" />
-                    Общение
-                  </TabsTrigger>
-                </TabsList>
+                {user.role === "client" && user.id === task.clientId ? (
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="overview" className="flex items-center gap-2">
+                      <Eye className="h-4 w-4" />
+                      Обзор
+                    </TabsTrigger>
+                    <TabsTrigger value="bids" className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Заявки ({bids.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="communication" className="flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4" />
+                      Общение
+                    </TabsTrigger>
+                  </TabsList>
+                ) : (
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="overview" className="flex items-center gap-2">
+                      <Eye className="h-4 w-4" />
+                      Обзор
+                    </TabsTrigger>
+                    <TabsTrigger value="communication" className="flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4" />
+                      Общение
+                    </TabsTrigger>
+                  </TabsList>
+                )}
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

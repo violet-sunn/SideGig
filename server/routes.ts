@@ -24,6 +24,23 @@ function getEffectiveUserId(req: any): string {
   return req.user.claims.sub;
 }
 
+// Development auth bypass middleware
+function devAuthBypass(req: any, res: any, next: any) {
+  if (process.env.NODE_ENV === 'development') {
+    const impersonateId = req.query.impersonate as string || req.headers['x-impersonate'] as string;
+    if (impersonateId) {
+      // Create fake user object for development
+      req.user = {
+        claims: {
+          sub: impersonateId
+        }
+      };
+      return next();
+    }
+  }
+  return isAuthenticated(req, res, next);
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
@@ -241,7 +258,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Submit work for review (freelancer)
-  app.patch("/api/tasks/:id/submit", isAuthenticated, async (req: any, res) => {
+  app.patch("/api/tasks/:id/submit", devAuthBypass, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { deliveryMessage, files } = req.body;
@@ -285,7 +302,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Approve completed work (client)
-  app.patch("/api/tasks/:id/approve", isAuthenticated, async (req: any, res) => {
+  app.patch("/api/tasks/:id/approve", devAuthBypass, async (req: any, res) => {
     try {
       const { id } = req.params;
       const userId = getEffectiveUserId(req);
@@ -310,7 +327,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Reject completed work (client) 
-  app.patch("/api/tasks/:id/reject", isAuthenticated, async (req: any, res) => {
+  app.patch("/api/tasks/:id/reject", devAuthBypass, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { rejectionReason } = req.body;

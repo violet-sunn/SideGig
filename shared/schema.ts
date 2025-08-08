@@ -33,6 +33,7 @@ export const userRoleEnum = pgEnum("user_role", ["client", "freelancer", "modera
 export const taskStatusEnum = pgEnum("task_status", [
   "open",
   "in_progress", 
+  "in_review",
   "completed",
   "cancelled",
 ]);
