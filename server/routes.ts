@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, isAdmin, isModerator } from "./replitAuth";
+import { setupWebSocketServer } from "./notifications";
 import { z } from "zod";
 import {
   insertTaskSchema,
@@ -630,6 +631,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Notification endpoints
+  app.get('/api/notifications', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getEffectiveUserId(req);
+      const limit = parseInt(req.query.limit as string) || 50;
+      const notifications = await storage.getNotifications(userId, limit);
+      res.json(notifications);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      res.status(500).json({ message: 'Failed to fetch notifications' });
+    }
+  });
+
+  app.get('/api/notifications/unread-count', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getEffectiveUserId(req);
+      const count = await storage.getUnreadNotificationCount(userId);
+      res.json({ count });
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+      res.status(500).json({ message: 'Failed to fetch unread count' });
+    }
+  });
+
+  app.patch('/api/notifications/:id/read', isAuthenticated, async (req: any, res) => {
+    try {
+      const notificationId = req.params.id;
+      await storage.markNotificationAsRead(notificationId);
+      res.json({ message: 'Notification marked as read' });
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      res.status(500).json({ message: 'Failed to mark notification as read' });
+    }
+  });
+
+  app.patch('/api/notifications/read-all', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getEffectiveUserId(req);
+      await storage.markAllNotificationsAsRead(userId);
+      res.json({ message: 'All notifications marked as read' });
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+      res.status(500).json({ message: 'Failed to mark notifications as read' });
+    }
+  });
+
+  app.delete('/api/notifications/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const notificationId = req.params.id;
+      await storage.deleteNotification(notificationId);
+      res.json({ message: 'Notification deleted' });
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+      res.status(500).json({ message: 'Failed to delete notification' });
+    }
+  });
+
   const httpServer = createServer(app);
+  
+  // Setup WebSocket server
+  setupWebSocketServer(httpServer);
+  console.log('WebSocket server setup complete - notifications enabled');
+  
   return httpServer;
 }

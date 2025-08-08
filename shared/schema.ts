@@ -60,6 +60,22 @@ export const disputeStatusEnum = pgEnum("dispute_status", [
   "resolved",
 ]);
 
+// Notification type enum
+export const notificationTypeEnum = pgEnum("notification_type", [
+  "new_bid",
+  "bid_accepted", 
+  "bid_rejected",
+  "new_message",
+  "task_completed",
+  "task_cancelled",
+  "payment_received",
+  "review_received",
+  "dispute_created",
+  "dispute_resolved",
+  "task_assigned",
+  "counter_offer"
+]);
+
 // User storage table - mandatory for Replit Auth
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -175,6 +191,22 @@ export const disputes = pgTable("disputes", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Notifications table
+export const notifications = pgTable("notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  type: notificationTypeEnum("type").notNull(),
+  title: varchar("title").notNull(),
+  message: text("message").notNull(),
+  relatedEntityId: varchar("related_entity_id"), // task_id, bid_id, message_id, etc.
+  relatedEntityType: varchar("related_entity_type"), // "task", "bid", "message", etc.
+  isRead: boolean("is_read").default(false),
+  readAt: timestamp("read_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  actionUrl: varchar("action_url"), // URL to navigate to when clicked
+  metadata: jsonb("metadata"), // Additional data like user names, etc.
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   clientTasks: many(tasks, { relationName: "clientTasks" }),
@@ -186,6 +218,14 @@ export const usersRelations = relations(users, ({ many }) => ({
   freelancerPayments: many(payments, { relationName: "freelancerPayments" }),
   givenReviews: many(reviews, { relationName: "givenReviews" }),
   receivedReviews: many(reviews, { relationName: "receivedReviews" }),
+  notifications: many(notifications),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
+  }),
 }));
 
 export const tasksRelations = relations(tasks, ({ one, many }) => ({
@@ -373,6 +413,12 @@ export const insertDisputeSchema = createInsertSchema(disputes).omit({
   resolution: true,
 });
 
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+  readAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
@@ -391,3 +437,5 @@ export type Review = typeof reviews.$inferSelect;
 export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type Dispute = typeof disputes.$inferSelect;
 export type InsertDispute = z.infer<typeof insertDisputeSchema>;
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
