@@ -27,10 +27,6 @@ import Onboarding from "@/pages/onboarding";
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
 
-  // Temporary debug - display user data
-  if (user) {
-    console.log('App.tsx - user.onboardingCompleted:', user.onboardingCompleted, typeof user.onboardingCompleted);
-  }
 
   if (isLoading) {
     return (
@@ -50,10 +46,7 @@ function Router() {
       ) : user && !user.onboardingCompleted ? (
         <>
           <Route path="/onboarding" component={Onboarding} />
-          <Route path="/*" component={() => {
-            window.location.href = '/onboarding';
-            return null;
-          }} />
+          <Route component={() => <Onboarding />} />
         </>
       ) : (
         <>
