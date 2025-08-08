@@ -348,6 +348,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Send work for revision (client) 
+  app.patch("/api/tasks/:id/request-revision", devAuthBypass, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { reason, detailedFeedback } = req.body;
+      const userId = getEffectiveUserId(req);
+      
+      const task = await storage.getTask(id);
+      if (!task) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+      
+      if (task.clientId !== userId) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+      
+      // Update task status back to in_progress
+      await storage.updateTaskStatus(id, "in_progress");
+      
+      // Save revision request
+      await storage.saveTaskRevision(id, {
+        reason,
+        detailedFeedback,
+        requestedAt: new Date()
+      });
+      
+      // Notify freelancer
+      const freelancer = await storage.getUser(task.assignedFreelancerId);
+      if (freelancer) {
+        await NotificationService.notifyTaskRevisionRequested(
+          task.id,
+          task.assignedFreelancerId,
+          `${freelancer.firstName} ${freelancer.lastName}`,
+          task.title,
+          reason
+        );
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error requesting revision:", error);
+      res.status(500).json({ message: "Failed to request revision" });
+    }
+  });
+
   // Reject completed work (client) 
   app.patch("/api/tasks/:id/reject", devAuthBypass, async (req: any, res) => {
     try {

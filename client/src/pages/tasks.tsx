@@ -235,9 +235,11 @@ export default function Tasks() {
                           {task.category && (
                             <Badge variant="outline">{task.category}</Badge>
                           )}
-                          <Button variant="outline" size="sm">
-                            Подробнее
-                          </Button>
+                          <Link href={`/task/${task.id}`}>
+                            <Button variant="outline" size="sm">
+                              Подробнее
+                            </Button>
+                          </Link>
                         </div>
                       </div>
                     </CardContent>

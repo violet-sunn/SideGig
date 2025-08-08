@@ -193,6 +193,20 @@ export class NotificationService {
     });
   }
 
+  // Task revision requested notification
+  static async notifyTaskRevisionRequested(taskId: string, freelancerId: string, freelancerName: string, taskTitle: string, reason: string) {
+    return await createAndBroadcastNotification({
+      userId: freelancerId,
+      type: 'task_assigned',
+      title: 'Требуется доработка',
+      message: `Заказчик запросил доработку задачи "${taskTitle}". Причина: ${reason}`,
+      relatedEntityId: taskId,
+      relatedEntityType: 'task',
+      actionUrl: `/task/${taskId}`,
+      metadata: { taskTitle, reason }
+    });
+  }
+
   // Task assigned notification  
   static async notifyTaskAssigned(taskId: string, freelancerId: string, clientName: string, taskTitle: string) {
     return await createAndBroadcastNotification({

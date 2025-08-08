@@ -43,6 +43,7 @@ interface Task {
   id: string;
   title: string;
   description: string;
+  definitionOfDone?: string;
   budget: number;
   deadline: string;
   status: string;
@@ -88,6 +89,8 @@ export default function TaskDetail() {
   const [newMessage, setNewMessage] = useState("");
   const [deliveryMessage, setDeliveryMessage] = useState("");
   const [rejectionReason, setRejectionReason] = useState("");
+  const [revisionReason, setRevisionReason] = useState("");
+  const [revisionDetails, setRevisionDetails] = useState("");
 
   const taskId = params.id;
 
@@ -196,6 +199,21 @@ export default function TaskDetail() {
     },
     onError: (error) => {
       toast({ title: "Ошибка", description: "Не удалось отклонить работу", variant: "destructive" });
+    },
+  });
+
+  const requestRevisionMutation = useMutation({
+    mutationFn: async (data: { reason: string; detailedFeedback: string }) => {
+      return await apiRequest(`/api/tasks/${taskId}/request-revision`, "PATCH", data);
+    },
+    onSuccess: () => {
+      toast({ title: "Отправлено на доработку", description: "Фрилансер уведомлен о необходимых изменениях" });
+      queryClient.invalidateQueries({ queryKey: [`/api/tasks/${taskId}`] });
+      setRevisionReason("");
+      setRevisionDetails("");
+    },
+    onError: (error) => {
+      toast({ title: "Ошибка", description: "Не удалось отправить на доработку", variant: "destructive" });
     },
   });
 
@@ -417,8 +435,8 @@ export default function TaskDetail() {
                                 <Input
                                   id="deadline"
                                   type="date"
-                                  value={bidDeadline || ""}
-                                  onChange={(e) => setBidDeadline(e.target.value || null)}
+                                  value={bidDeadline ? bidDeadline.toISOString().split("T")[0] : ""}
+                                  onChange={(e) => setBidDeadline(e.target.value ? new Date(e.target.value) : null)}
                                   min={new Date().toISOString().split("T")[0]}
                                   required
                                 />
@@ -531,10 +549,42 @@ export default function TaskDetail() {
                           </div>
                           
                           <div className="space-y-3">
+                            <div className="space-y-2">
+                              <Label>Причина доработки</Label>
+                              <Input
+                                value={revisionReason}
+                                onChange={(e) => setRevisionReason(e.target.value)}
+                                placeholder="Краткая причина (обязательно)..."
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Подробное описание</Label>
+                              <Textarea
+                                value={revisionDetails}
+                                onChange={(e) => setRevisionDetails(e.target.value)}
+                                placeholder="Подробно опишите что нужно изменить или доработать..."
+                                rows={3}
+                              />
+                            </div>
+                            <Button 
+                              variant="secondary"
+                              onClick={() => requestRevisionMutation.mutate({ 
+                                reason: revisionReason, 
+                                detailedFeedback: revisionDetails 
+                              })}
+                              disabled={requestRevisionMutation.isPending || !revisionReason.trim()}
+                              className="w-full"
+                            >
+                              <Settings className="h-4 w-4 mr-2" />
+                              {requestRevisionMutation.isPending ? "Отправка..." : "Отправить на доработку"}
+                            </Button>
+                          </div>
+                          
+                          <div className="space-y-3 pt-4 border-t">
                             <Textarea
                               value={rejectionReason}
                               onChange={(e) => setRejectionReason(e.target.value)}
-                              placeholder="Укажите причину отклонения (опционально)..."
+                              placeholder="Укажите причину окончательного отклонения (опционально)..."
                               rows={2}
                             />
                             <Button 
@@ -544,7 +594,7 @@ export default function TaskDetail() {
                               className="w-full text-red-600 hover:text-red-700"
                             >
                               <ThumbsDown className="h-4 w-4 mr-2" />
-                              {rejectWorkMutation.isPending ? "Отклонение..." : "Отклонить работу"}
+                              {rejectWorkMutation.isPending ? "Отклонение..." : "Отклонить работу окончательно"}
                             </Button>
                           </div>
                         </CardContent>

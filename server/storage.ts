@@ -255,6 +255,13 @@ export class DatabaseStorage implements IStorage {
     }).where(eq(tasks.id, taskId));
   }
 
+  async saveTaskRevision(taskId: string, revisionData: any): Promise<void> {
+    // For now, just update the timestamp - revision details can be stored in messages
+    await db.update(tasks).set({
+      updatedAt: new Date()
+    }).where(eq(tasks.id, taskId));
+  }
+
   // Bid operations
   async createBid(bid: InsertBid): Promise<Bid> {
     const [newBid] = await db.insert(bids).values(bid).returning();
