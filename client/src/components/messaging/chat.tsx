@@ -64,7 +64,7 @@ export default function Chat({ taskId, otherUser, taskTitle, taskBudget }: ChatP
 
   const markAsReadMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("PATCH", `/api/messages/read/${taskId}`, {});
+      const response = await apiRequest(`/api/messages/read/${taskId}`, "PATCH", {});
       return response.json();
     },
   });
@@ -91,10 +91,10 @@ export default function Chat({ taskId, otherUser, taskTitle, taskBudget }: ChatP
 
   // Mark messages as read when component loads
   useEffect(() => {
-    if (taskId && messages?.length > 0) {
+    if (taskId && messages && messages.length > 0) {
       markAsReadMutation.mutate();
     }
-  }, [taskId, messages?.length]);
+  }, [taskId, messages]);
 
   return (
     <div className="flex flex-col h-full">
@@ -187,7 +187,7 @@ export default function Chat({ taskId, otherUser, taskTitle, taskBudget }: ChatP
                     })}
                   </p>
                 </div>
-                {message.senderId === user?.id && (
+                {message.senderId === user?.id && user && (
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={user.profileImageUrl || ""} />
                     <AvatarFallback className="text-xs">

@@ -645,7 +645,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/conversations", isAuthenticated, async (req: any, res) => {
+  app.get("/api/conversations", devAuthBypass, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const conversations = await storage.getConversations(userId);
@@ -656,7 +656,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/messages/read/:taskId", isAuthenticated, async (req: any, res) => {
+  app.patch("/api/messages/read/:taskId", devAuthBypass, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const { taskId } = req.params;
