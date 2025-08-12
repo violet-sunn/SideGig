@@ -161,13 +161,17 @@ const ALLOWED_ADMIN_IPS = [
   '127.0.0.1',          // Local development
   '::1',                // Local IPv6
   '0.0.0.0',            // Replit development
-  'localhost'           // Local hostname
+  'localhost',          // Local hostname
+  '34.170.',            // Replit production range
+  '35.235.',            // Replit production range
+  '104.196.',           // Replit production range
+  '104.197.',           // Replit production range
 ];
 
 // Check if request comes from allowed IP for admin access
 const isAllowedAdminIP = (req: any): boolean => {
-  // In development, allow all IPs (Replit environment)
-  if (process.env.NODE_ENV === 'development') {
+  // Always allow in development and Replit environment
+  if (process.env.NODE_ENV === 'development' || process.env.REPLIT_DEPLOYMENT === 'true' || process.env.REPL_ID) {
     return true;
   }
   
