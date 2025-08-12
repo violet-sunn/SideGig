@@ -76,6 +76,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/profile", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
+      console.log("Debug: Profile update request for user:", userId);
+      console.log("Debug: Request body:", req.body);
+      
       const { firstName, lastName, email, role, skills, bio } = req.body;
       
       const user = await storage.getUser(userId);
@@ -83,6 +86,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
+      // Only include fields that exist in the database schema
       const profileData: any = {};
       if (firstName !== undefined) profileData.firstName = firstName;
       if (lastName !== undefined) profileData.lastName = lastName;
@@ -91,7 +95,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (skills !== undefined) profileData.skills = skills ? skills.split(',').map((s: string) => s.trim()) : [];
       if (bio !== undefined) profileData.bio = bio;
 
+      console.log("Debug: Profile data to update:", profileData);
       const updatedUser = await storage.updateUserProfile(userId, profileData);
+      console.log("Debug: Profile updated successfully");
       res.json(updatedUser);
     } catch (error) {
       console.error("Error updating profile:", error);
