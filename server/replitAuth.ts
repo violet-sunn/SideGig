@@ -156,47 +156,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   }
 };
 
-// IP Whitelist for admin access (development environment only for security)
-const ALLOWED_ADMIN_IPS = [
-  '127.0.0.1',          // Local development
-  '::1',                // Local IPv6
-  '0.0.0.0',            // Replit development
-  'localhost',          // Local hostname
-  '34.170.',            // Replit production range
-  '35.235.',            // Replit production range
-  '104.196.',           // Replit production range
-  '104.197.',           // Replit production range
-];
 
-// Check if request comes from allowed IP for admin access
-const isAllowedAdminIP = (req: any): boolean => {
-  // Always allow in development and Replit environment
-  if (process.env.NODE_ENV === 'development' || process.env.REPLIT_DEPLOYMENT === 'true' || process.env.REPL_ID) {
-    return true;
-  }
-  
-  const clientIP = req.ip || req.connection?.remoteAddress || req.socket?.remoteAddress;
-  const forwardedIPs = req.headers['x-forwarded-for'];
-  
-  // Check direct IP
-  if (clientIP && ALLOWED_ADMIN_IPS.some(allowedIP => 
-    clientIP.includes(allowedIP) || clientIP === allowedIP
-  )) {
-    return true;
-  }
-  
-  // Check forwarded IPs
-  if (forwardedIPs) {
-    const ips = Array.isArray(forwardedIPs) ? forwardedIPs : [forwardedIPs];
-    return ips.some(ip => 
-      ALLOWED_ADMIN_IPS.some(allowedIP => 
-        ip.includes(allowedIP) || ip === allowedIP
-      )
-    );
-  }
-  
-  return false;
-};
 
 // Middleware for moderators (can view admin info but limited actions)
 export const isModerator: RequestHandler = async (req, res, next) => {
@@ -204,12 +164,6 @@ export const isModerator: RequestHandler = async (req, res, next) => {
 
   if (!req.isAuthenticated() || !user.expires_at) {
     return res.status(401).json({ message: "Unauthorized" });
-  }
-
-  // IP-based security check
-  if (!isAllowedAdminIP(req)) {
-    console.warn(`Moderator access denied from IP: ${req.ip}, User: ${user.claims.sub}`);
-    return res.status(403).json({ message: "Forbidden: Access denied from this location" });
   }
 
   try {
@@ -229,47 +183,35 @@ export const isModerator: RequestHandler = async (req, res, next) => {
     (req as any).userRole = userData.role;
     return next();
   } catch (error) {
+    console.error("Moderator middleware error:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
 
 export const isAdmin: RequestHandler = async (req, res, next) => {
   const user = req.user as any;
-  console.log("Debug: isAdmin check for user:", user?.claims?.sub);
 
   if (!req.isAuthenticated() || !user?.expires_at) {
-    console.log("Debug: Admin access denied - not authenticated or no expires_at");
     return res.status(401).json({ message: "Unauthorized" });
-  }
-
-  // Additional IP-based security check for production
-  if (!isAllowedAdminIP(req)) {
-    console.warn(`Admin access denied from IP: ${req.ip}, User: ${user.claims.sub}`);
-    return res.status(403).json({ message: "Forbidden: Access denied from this location" });
   }
 
   try {
     const { storage } = await import("./storage");
     const userId = user.claims.sub;
-    console.log("Debug: Checking admin access for userId:", userId);
     const userData = await storage.getUser(userId);
-    console.log("Debug: User data found:", userData ? `${userData.firstName} ${userData.lastName}, role: ${userData.role}` : "null");
     
     if (!userData || userData.role !== "admin") {
-      console.log("Debug: Admin access denied - user not found or role not admin, actual role:", userData?.role);
       return res.status(403).json({ message: "Forbidden: Admin access required" });
     }
 
     // Check if admin account is blocked
     if (userData.isBlocked) {
-      console.log("Debug: Admin access denied - account is blocked");
       return res.status(403).json({ message: "Forbidden: Admin account is blocked" });
     }
 
-    console.log("Debug: Admin access granted for user:", userData.firstName, userData.lastName);
     return next();
   } catch (error) {
-    console.error("Debug: Admin middleware error:", error);
+    console.error("Admin middleware error:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
