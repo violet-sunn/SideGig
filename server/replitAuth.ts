@@ -231,8 +231,10 @@ export const isModerator: RequestHandler = async (req, res, next) => {
 
 export const isAdmin: RequestHandler = async (req, res, next) => {
   const user = req.user as any;
+  console.log("Debug: isAdmin check for user:", user?.claims?.sub);
 
-  if (!req.isAuthenticated() || !user.expires_at) {
+  if (!req.isAuthenticated() || !user?.expires_at) {
+    console.log("Debug: Admin access denied - not authenticated or no expires_at");
     return res.status(401).json({ message: "Unauthorized" });
   }
 
@@ -245,19 +247,25 @@ export const isAdmin: RequestHandler = async (req, res, next) => {
   try {
     const { storage } = await import("./storage");
     const userId = user.claims.sub;
+    console.log("Debug: Checking admin access for userId:", userId);
     const userData = await storage.getUser(userId);
+    console.log("Debug: User data found:", userData ? `${userData.firstName} ${userData.lastName}, role: ${userData.role}` : "null");
     
     if (!userData || userData.role !== "admin") {
+      console.log("Debug: Admin access denied - user not found or role not admin, actual role:", userData?.role);
       return res.status(403).json({ message: "Forbidden: Admin access required" });
     }
 
     // Check if admin account is blocked
     if (userData.isBlocked) {
+      console.log("Debug: Admin access denied - account is blocked");
       return res.status(403).json({ message: "Forbidden: Admin account is blocked" });
     }
 
+    console.log("Debug: Admin access granted for user:", userData.firstName, userData.lastName);
     return next();
   } catch (error) {
+    console.error("Debug: Admin middleware error:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
