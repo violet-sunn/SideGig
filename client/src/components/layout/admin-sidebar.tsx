@@ -40,7 +40,7 @@ export default function AdminSidebar({ user }: AdminSidebarProps) {
   ];
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 min-h-screen">
+    <div className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col">
       {/* Header */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center space-x-3">
@@ -66,7 +66,9 @@ export default function AdminSidebar({ user }: AdminSidebarProps) {
             <p className="text-sm font-medium text-gray-900">
               {user?.firstName} {user?.lastName}
             </p>
-            <p className="text-xs text-red-600">Администратор</p>
+            <p className="text-xs text-red-600">
+              {user?.role === "admin" ? "Администратор" : "Модератор"}
+            </p>
           </div>
         </div>
       </div>
@@ -104,13 +106,13 @@ export default function AdminSidebar({ user }: AdminSidebarProps) {
       </nav>
 
       {/* Logout */}
-      <div className="absolute bottom-4 left-4 right-4">
+      <div className="mt-auto p-4 border-t border-gray-200">
         <a 
           href="/api/logout"
-          className="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-red-50 hover:text-red-700 transition-colors w-full"
+          className="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-red-50 hover:text-red-700 transition-colors w-full border border-gray-200 hover:border-red-200"
         >
-          <LogOut className="h-5 w-5 text-gray-500" />
-          <span>Выйти</span>
+          <LogOut className="h-5 w-5 text-gray-500 hover:text-red-600" />
+          <span>Выйти из системы</span>
         </a>
       </div>
     </div>
