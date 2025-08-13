@@ -29,28 +29,33 @@ function getEffectiveUserId(req: any): string {
   return req.user.claims.sub;
 }
 
-// Development auth bypass middleware
-// SECURITY: Only active in NODE_ENV=development
-function devAuthBypass(req: any, res: any, next: any) {
-  // Use security guard to check impersonation
+// Robust authentication middleware for both development and production
+// Works with impersonation in development and real auth in production
+function robustAuth(req: any, res: any, next: any) {
+  // Check for development impersonation first
   const impersonateId = ImpersonationSecurityGuard.getImpersonationId(req);
   
-  console.log("Debug: devAuthBypass called with impersonateId:", impersonateId);
-  console.log("Debug: NODE_ENV:", process.env.NODE_ENV);
+  console.log("Debug: robustAuth called - impersonateId:", impersonateId, "NODE_ENV:", process.env.NODE_ENV);
   
-  if (impersonateId) {
-    // Create fake user object for development testing only
+  if (impersonateId && process.env.NODE_ENV === 'development') {
+    // Development impersonation mode
     req.user = {
       claims: {
         sub: impersonateId
       }
     };
-    console.log("Debug: devAuthBypass - using impersonation for user:", impersonateId);
+    console.log("Debug: robustAuth - using development impersonation for user:", impersonateId);
     return next();
   }
   
-  console.log("Debug: devAuthBypass - no impersonation, falling back to real auth");
-  // In production or when no impersonation, use real authentication
+  // Production mode or no impersonation - check if user is already authenticated
+  if (req.user && req.user.claims && req.user.claims.sub) {
+    console.log("Debug: robustAuth - user already authenticated:", req.user.claims.sub);
+    return next();
+  }
+  
+  // Fall back to standard authentication
+  console.log("Debug: robustAuth - falling back to isAuthenticated middleware");
   return isAuthenticated(req, res, next);
 }
 
@@ -117,7 +122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User profile routes
-  app.patch("/api/profile", devAuthBypass, async (req: any, res) => {
+  app.patch("/api/profile", robustAuth, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       console.log("Debug: Profile update request for user:", userId);
@@ -149,7 +154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/users/stats", devAuthBypass, async (req: any, res) => {
+  app.get("/api/users/stats", robustAuth, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const stats = await storage.getUserStats(userId);
@@ -160,7 +165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/profile", devAuthBypass, async (req: any, res) => {
+  app.get("/api/profile", robustAuth, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const user = await storage.getUser(userId);
@@ -175,7 +180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Onboarding completion endpoint
-  app.post("/api/profile/onboarding", devAuthBypass, async (req: any, res) => {
+  app.post("/api/profile/onboarding", robustAuth, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const { role, firstName, lastName, bio, skills, onboardingCompleted } = req.body;
@@ -204,7 +209,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Task routes  
-  app.post("/api/tasks", devAuthBypass, async (req: any, res) => {
+  app.post("/api/tasks", robustAuth, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const taskData = insertTaskSchema.parse({
@@ -221,7 +226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Save task as draft
-  app.post("/api/tasks/draft", devAuthBypass, async (req: any, res) => {
+  app.post("/api/tasks/draft", robustAuth, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       
@@ -243,7 +248,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/tasks/my", devAuthBypass, async (req: any, res) => {
+  app.get("/api/tasks/my", robustAuth, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       console.log("Debug: userId from getEffectiveUserId:", userId);
@@ -268,7 +273,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/tasks/available", devAuthBypass, async (req: any, res) => {
+  app.get("/api/tasks/available", robustAuth, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const tasks = await storage.getAvailableTasks(userId);
@@ -280,7 +285,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Active projects route for freelancers (must be before :id route)
-  app.get("/api/tasks/active", devAuthBypass, async (req: any, res) => {
+  app.get("/api/tasks/active", robustAuth, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       console.log("Debug: Fetching active tasks for freelancer:", userId);
@@ -304,7 +309,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/tasks/:id", devAuthBypass, async (req: any, res) => {
+  app.get("/api/tasks/:id", robustAuth, async (req: any, res) => {
     try {
       const { id } = req.params;
       const task = await storage.getTask(id);
@@ -320,7 +325,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/tasks/:id/status", devAuthBypass, async (req: any, res) => {
+  app.patch("/api/tasks/:id/status", robustAuth, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { status, freelancerId } = req.body;
@@ -353,7 +358,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Submit work for review (freelancer)
-  app.patch("/api/tasks/:id/submit", devAuthBypass, async (req: any, res) => {
+  app.patch("/api/tasks/:id/submit", robustAuth, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { deliveryMessage, files } = req.body;
@@ -397,7 +402,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Approve completed work (client)
-  app.patch("/api/tasks/:id/approve", devAuthBypass, async (req: any, res) => {
+  app.patch("/api/tasks/:id/approve", robustAuth, async (req: any, res) => {
     try {
       const { id } = req.params;
       const userId = getEffectiveUserId(req);
@@ -422,7 +427,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Send work for revision (client) 
-  app.patch("/api/tasks/:id/request-revision", devAuthBypass, async (req: any, res) => {
+  app.patch("/api/tasks/:id/request-revision", robustAuth, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { reason, detailedFeedback } = req.body;
@@ -467,7 +472,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Reject completed work (client) 
-  app.patch("/api/tasks/:id/reject", devAuthBypass, async (req: any, res) => {
+  app.patch("/api/tasks/:id/reject", robustAuth, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { rejectionReason } = req.body;
@@ -499,7 +504,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Task creation route
-  app.post("/api/tasks", devAuthBypass, async (req: any, res) => {
+  app.post("/api/tasks", robustAuth, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const taskData = insertTaskSchema.parse({
@@ -520,7 +525,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Bid routes
-  app.post("/api/bids", devAuthBypass, async (req: any, res) => {
+  app.post("/api/bids", robustAuth, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const bidData = insertBidSchema.parse({
@@ -555,7 +560,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/bids/task/:taskId", devAuthBypass, async (req: any, res) => {
+  app.get("/api/bids/task/:taskId", robustAuth, async (req: any, res) => {
     try {
       const { taskId } = req.params;
       const bids = await storage.getBidsByTask(taskId);
@@ -566,7 +571,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/bids/my", devAuthBypass, async (req: any, res) => {
+  app.get("/api/bids/my", robustAuth, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const bids = await storage.getBidsByFreelancer(userId);
@@ -578,7 +583,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get pending bids for client review
-  app.get("/api/bids/pending", devAuthBypass, async (req: any, res) => {
+  app.get("/api/bids/pending", robustAuth, async (req: any, res) => {
     try {
       const clientId = getEffectiveUserId(req);
       const pendingBids = await storage.getPendingBidsForClient(clientId);
@@ -589,7 +594,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/bids/:id/status", devAuthBypass, async (req: any, res) => {
+  app.patch("/api/bids/:id/status", robustAuth, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { status } = req.body;
@@ -638,7 +643,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Accept bid endpoint (alternative route for UI compatibility)
-  app.patch("/api/bids/:id/accept", devAuthBypass, async (req: any, res) => {
+  app.patch("/api/bids/:id/accept", robustAuth, async (req: any, res) => {
     try {
       const { id } = req.params;
       console.log("Debug: Accept bid endpoint called with ID:", id);
@@ -698,7 +703,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Message routes
-  app.post("/api/messages", devAuthBypass, async (req: any, res) => {
+  app.post("/api/messages", robustAuth, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       
@@ -753,7 +758,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/messages/task/:taskId", devAuthBypass, async (req: any, res) => {
+  app.get("/api/messages/task/:taskId", robustAuth, async (req: any, res) => {
     try {
       const { taskId } = req.params;
       console.log(`Debug: Fetching messages for task ${taskId}`);
@@ -766,7 +771,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/conversations", devAuthBypass, async (req: any, res) => {
+  app.get("/api/conversations", robustAuth, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const conversations = await storage.getConversations(userId);
@@ -777,7 +782,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/messages/read/:taskId", devAuthBypass, async (req: any, res) => {
+  app.patch("/api/messages/read/:taskId", robustAuth, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const { taskId } = req.params;
@@ -791,7 +796,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Payment routes
-  app.get("/api/payments", devAuthBypass, async (req: any, res) => {
+  app.get("/api/payments", robustAuth, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const payments = await storage.getPaymentsByUser(userId);
@@ -802,7 +807,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/payments/:id/status", devAuthBypass, async (req: any, res) => {
+  app.patch("/api/payments/:id/status", robustAuth, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { status } = req.body;
@@ -816,7 +821,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Review routes
-  app.post("/api/reviews", devAuthBypass, async (req: any, res) => {
+  app.post("/api/reviews", robustAuth, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const reviewData = insertReviewSchema.parse({
@@ -847,7 +852,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/reviews", devAuthBypass, async (req: any, res) => {
+  app.get("/api/reviews", robustAuth, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const reviews = await storage.getReviewsByUser(userId);
@@ -859,7 +864,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Dispute routes
-  app.post("/api/disputes", devAuthBypass, async (req: any, res) => {
+  app.post("/api/disputes", robustAuth, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const disputeData = insertDisputeSchema.parse({
@@ -894,7 +899,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/disputes", devAuthBypass, async (req: any, res) => {
+  app.get("/api/disputes", robustAuth, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const disputes = await storage.getDisputesByUser(userId);
@@ -908,7 +913,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // Earnings routes for freelancers
-  app.get("/api/earnings", devAuthBypass, async (req: any, res) => {
+  app.get("/api/earnings", robustAuth, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const payments = await storage.getPaymentsByUser(userId);
@@ -928,7 +933,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/earnings/stats", devAuthBypass, async (req: any, res) => {
+  app.get("/api/earnings/stats", robustAuth, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const payments = await storage.getPaymentsByUser(userId);
@@ -1083,7 +1088,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Notification endpoints
-  app.get('/api/notifications', devAuthBypass, async (req: any, res) => {
+  app.get('/api/notifications', robustAuth, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const limit = parseInt(req.query.limit as string) || 50;
@@ -1095,7 +1100,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/notifications/unread-count', devAuthBypass, async (req: any, res) => {
+  app.get('/api/notifications/unread-count', robustAuth, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const count = await storage.getUnreadNotificationCount(userId);
@@ -1106,7 +1111,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/notifications/:id/read', devAuthBypass, async (req: any, res) => {
+  app.patch('/api/notifications/:id/read', robustAuth, async (req: any, res) => {
     try {
       const notificationId = req.params.id;
       await storage.markNotificationAsRead(notificationId);
@@ -1117,7 +1122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/notifications/read-all', devAuthBypass, async (req: any, res) => {
+  app.patch('/api/notifications/read-all', robustAuth, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       await storage.markAllNotificationsAsRead(userId);
@@ -1128,7 +1133,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/notifications/:id', devAuthBypass, async (req: any, res) => {
+  app.delete('/api/notifications/:id', robustAuth, async (req: any, res) => {
     try {
       const notificationId = req.params.id;
       await storage.deleteNotification(notificationId);
