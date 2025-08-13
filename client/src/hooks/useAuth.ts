@@ -7,14 +7,14 @@ export function useAuth() {
   const urlParams = new URLSearchParams(window.location.search);
   const impersonateId = urlParams.get('impersonate');
   
-  // Only use impersonation in development and when explicitly set
-  // Use import.meta.env.DEV instead of process.env.NODE_ENV for more reliable detection
+  // SECURITY: Only use impersonation in development environment
+  // Use import.meta.env.DEV for reliable development detection
   const isDevelopment = import.meta.env.DEV;
   const shouldImpersonate = isDevelopment && impersonateId;
   
-  // Clean up impersonation parameter from URL if we're in production
+  // SECURITY: Immediately remove impersonation parameter in production
   if (!isDevelopment && impersonateId) {
-    console.warn('[useAuth] Impersonation not allowed in production, cleaning URL');
+    console.warn('[useAuth] SECURITY: Impersonation not allowed in production, cleaning URL');
     const newUrl = new URL(window.location.href);
     newUrl.searchParams.delete('impersonate');
     window.history.replaceState({}, '', newUrl.pathname + newUrl.search);

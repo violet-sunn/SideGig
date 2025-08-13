@@ -12,33 +12,39 @@ import {
   insertReviewSchema,
   insertDisputeSchema,
 } from "@shared/schema";
+import { ImpersonationSecurityGuard } from "./security/impersonation-guard";
 
 // Development middleware for user impersonation
 function getEffectiveUserId(req: any): string {
-  // In development, allow impersonation via query parameter or headers
-  const impersonateId = req.query.impersonate as string || req.headers['x-impersonate'] as string;
-  if (process.env.NODE_ENV === 'development' && impersonateId) {
-    console.log("Debug: Using impersonated user ID:", impersonateId);
+  // Use security guard to check impersonation
+  const impersonateId = ImpersonationSecurityGuard.getImpersonationId(req);
+  
+  if (impersonateId) {
+    ImpersonationSecurityGuard.auditImpersonation(impersonateId, req.user?.claims?.sub);
     return impersonateId;
   }
+  
   console.log("Debug: Using real user ID:", req.user.claims.sub);
   return req.user.claims.sub;
 }
 
 // Development auth bypass middleware
+// SECURITY: Only active in NODE_ENV=development
 function devAuthBypass(req: any, res: any, next: any) {
-  if (process.env.NODE_ENV === 'development') {
-    const impersonateId = req.query.impersonate as string || req.headers['x-impersonate'] as string;
-    if (impersonateId) {
-      // Create fake user object for development
-      req.user = {
-        claims: {
-          sub: impersonateId
-        }
-      };
-      return next();
-    }
+  // Use security guard to check impersonation
+  const impersonateId = ImpersonationSecurityGuard.getImpersonationId(req);
+  
+  if (impersonateId) {
+    // Create fake user object for development testing only
+    req.user = {
+      claims: {
+        sub: impersonateId
+      }
+    };
+    return next();
   }
+  
+  // In production or when no impersonation, use real authentication
   return isAuthenticated(req, res, next);
 }
 

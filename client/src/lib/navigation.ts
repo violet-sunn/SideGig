@@ -3,11 +3,11 @@
 export function buildUrl(path: string, preserveImpersonation = false): string {
   const url = new URL(path, window.location.origin);
   
-  // In development mode, always preserve impersonation unless explicitly disabled
-  // In production, only preserve for admin pages or when explicitly requested
+  // SECURITY: Only preserve impersonation in development mode
+  // Production builds will NEVER preserve impersonation parameters
   const shouldPreserve = import.meta.env.DEV ? 
-    preserveImpersonation !== false : // dev: preserve by default
-    (preserveImpersonation || path.startsWith('/admin')); // prod: only when requested or admin
+    preserveImpersonation !== false : // dev: preserve by default for testing
+    false; // prod: NEVER preserve impersonation
   
   if (shouldPreserve) {
     const currentParams = new URLSearchParams(window.location.search);

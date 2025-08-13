@@ -45,6 +45,7 @@ export const getQueryFn: <T>(options: {
     const headers: any = {};
     
     // Handle impersonation parameter from query key (development only)
+    // SECURITY: Only add impersonate parameter in development
     if (import.meta.env.DEV && params?.impersonate) {
       const urlObj = new URL(url, window.location.origin);
       urlObj.searchParams.set('impersonate', params.impersonate);
