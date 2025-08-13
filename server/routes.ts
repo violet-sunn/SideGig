@@ -633,14 +633,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Accept bid endpoint (alternative route for UI compatibility)
-  app.patch("/api/bids/:id/accept", devAuthBypass, async (req: any, res) => {
+  app.patch("/api/bids/:id/accept", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       
       // Get bid details before updating for notification
       const bid = await storage.getBid(id);
       const task = bid ? await storage.getTask(bid.taskId) : null;
-      const client = bid ? await storage.getUser(getEffectiveUserId(req)) : null;
+      const client = bid ? await storage.getUser(req.user.claims.sub) : null;
       
       // Use special acceptBid method that also assigns freelancer to task
       await storage.acceptBid(id);

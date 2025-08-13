@@ -41,7 +41,7 @@ export default function BidCard({ bid, isOwner = false, canAccept = false, canRe
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Get impersonation parameter for API requests
+  // Get impersonation parameter for API requests - only in development
   const urlParams = new URLSearchParams(window.location.search);
   const impersonateId = urlParams.get('impersonate');
   const isDevelopment = import.meta.env.DEV;
@@ -65,8 +65,8 @@ export default function BidCard({ bid, isOwner = false, canAccept = false, canRe
         body = {};
       }
       
-      // Add impersonation to query params, not body
-      const url = queryParams ? `${endpoint}?impersonate=${queryParams.impersonate}` : endpoint;
+      // Add impersonation to query params only in development
+      const url = shouldImpersonate ? `${endpoint}?impersonate=${impersonateId}` : endpoint;
       const response = await apiRequest("PATCH", url, body);
       return response.json();
     },
@@ -101,7 +101,7 @@ export default function BidCard({ bid, isOwner = false, canAccept = false, canRe
 
   const submitCounterOfferMutation = useMutation({
     mutationFn: async (data: any) => {
-      const url = queryParams ? `/api/bids/${bid.id}/counter-offer?impersonate=${queryParams.impersonate}` : `/api/bids/${bid.id}/counter-offer`;
+      const url = shouldImpersonate ? `/api/bids/${bid.id}/counter-offer?impersonate=${impersonateId}` : `/api/bids/${bid.id}/counter-offer`;
       const response = await apiRequest("PATCH", url, data);
       return response.json();
     },
