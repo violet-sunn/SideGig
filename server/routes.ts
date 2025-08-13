@@ -636,14 +636,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/bids/:id/accept", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
+      console.log("Debug: Accept bid endpoint called with ID:", id);
+      console.log("Debug: User claims:", req.user?.claims);
       
       // Get bid details before updating for notification
       const bid = await storage.getBid(id);
-      const task = bid ? await storage.getTask(bid.taskId) : null;
-      const client = bid ? await storage.getUser(req.user.claims.sub) : null;
+      console.log("Debug: Found bid:", bid);
+      
+      if (!bid) {
+        console.log("Debug: Bid not found");
+        return res.status(404).json({ message: "Bid not found" });
+      }
+      
+      const task = await storage.getTask(bid.taskId);
+      console.log("Debug: Found task:", task);
+      
+      if (!task) {
+        console.log("Debug: Task not found");
+        return res.status(404).json({ message: "Task not found" });
+      }
+      
+      // Verify that the current user is the client who owns the task
+      const userId = req.user.claims.sub;
+      console.log("Debug: Current user ID:", userId, "Task client ID:", task.clientId);
+      
+      if (task.clientId !== userId) {
+        console.log("Debug: User is not the task owner");
+        return res.status(403).json({ message: "You can only accept bids on your own tasks" });
+      }
+      
+      const client = await storage.getUser(userId);
+      console.log("Debug: Found client:", client);
       
       // Use special acceptBid method that also assigns freelancer to task
+      console.log("Debug: About to accept bid");
       await storage.acceptBid(id);
+      console.log("Debug: Bid accepted successfully");
       
       // Notify freelancer about bid acceptance
       if (bid && task && client) {
@@ -653,12 +681,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           `${client.firstName} ${client.lastName}`,
           task.title
         );
+        console.log("Debug: Notification sent");
       }
       
       res.json({ success: true });
     } catch (error) {
-      console.error("Error accepting bid:", error);
-      res.status(500).json({ message: "Failed to accept bid" });
+      console.error("Error accepting bid - Full error:", error);
+      console.error("Error stack:", error.stack);
+      res.status(500).json({ message: "Failed to accept bid", error: error.message });
     }
   });
 
