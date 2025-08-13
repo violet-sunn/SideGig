@@ -100,9 +100,8 @@ function NotificationItem({
             </p>
             <p className="text-xs text-gray-500">
               {notification.createdAt ? formatDistanceToNow(new Date(notification.createdAt), {
-                addSuffix: true,
                 locale: ru
-              }) : 'Недавно'}
+              }) + ' назад' : 'Недавно'}
             </p>
           </div>
         </div>

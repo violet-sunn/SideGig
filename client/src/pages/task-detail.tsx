@@ -323,9 +323,8 @@ export default function TaskDetail() {
                     <span>Категория: {task.category}</span>
                     <span>•</span>
                     <span>Опубликовано {formatDistanceToNow(new Date(task.createdAt), { 
-                      addSuffix: true, 
                       locale: ru 
-                    })}</span>
+                    })} назад</span>
                   </div>
                 </div>
                 <Badge className={getStatusColor(task.status)}>
@@ -649,9 +648,8 @@ export default function TaskDetail() {
                                       <p className="text-sm text-gray-500 flex items-center gap-1">
                                         <Clock className="h-3 w-3" />
                                         {formatDistanceToNow(new Date(bid.createdAt), { 
-                                          addSuffix: true, 
                                           locale: ru 
-                                        })}
+                                        })} назад
                                       </p>
                                     </div>
                                   </div>
