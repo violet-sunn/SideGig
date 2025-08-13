@@ -1,20 +1,24 @@
 // Navigation utilities that preserve impersonation state only for specific admin flows
 
-export function buildUrl(path: string, preserveImpersonation = true): string {
+export function buildUrl(path: string, preserveParams = true): string {
   const url = new URL(path, window.location.origin);
   
-  // SECURITY: Only preserve impersonation in development mode
-  // Production builds will NEVER preserve impersonation parameters
-  const shouldPreserve = import.meta.env.DEV ? 
-    preserveImpersonation !== false : // dev: preserve by default for testing
-    false; // prod: NEVER preserve impersonation
-  
-  if (shouldPreserve) {
+  if (preserveParams) {
     const currentParams = new URLSearchParams(window.location.search);
-    const impersonateParam = currentParams.get('impersonate');
     
-    if (impersonateParam) {
-      url.searchParams.set('impersonate', impersonateParam);
+    if (import.meta.env.DEV) {
+      // SECURITY: In development, preserve all parameters including impersonation
+      currentParams.forEach((value, key) => {
+        url.searchParams.set(key, value);
+      });
+    } else {
+      // SECURITY: In production, preserve safe parameters but NEVER impersonation
+      currentParams.forEach((value, key) => {
+        // Only preserve non-security-sensitive parameters
+        if (key !== 'impersonate') {
+          url.searchParams.set(key, value);
+        }
+      });
     }
   }
   
