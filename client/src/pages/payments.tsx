@@ -276,7 +276,7 @@ export default function Payments() {
                                         : "Фрилансер")
                                     : (payment.client?.firstName && payment.client?.lastName
                                         ? `${payment.client.firstName} ${payment.client.lastName}`
-                                        : "Клиент")
+                                        : payment.client?.email?.split("@")[0] || "Клиент")
                                   }
                                 </p>
                                 <p className="text-xs text-gray-500">

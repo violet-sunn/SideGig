@@ -16,7 +16,7 @@ export default function AdminTasks() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
 
-  const { data: tasks, isLoading } = useQuery({
+  const { data: tasks = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/admin/tasks", { page, status: statusFilter }],
     retry: false,
   });
@@ -129,7 +129,10 @@ export default function AdminTasks() {
                       <div className="flex items-center space-x-4 text-sm text-gray-500">
                         <div className="flex items-center">
                           <User className="h-3 w-3 mr-1" />
-                          {task.client?.firstName} {task.client?.lastName}
+                          {task.client?.firstName && task.client?.lastName 
+                            ? `${task.client.firstName} ${task.client.lastName}`
+                            : task.client?.email?.split("@")[0] || "Клиент"
+                          }
                         </div>
                         <div className="flex items-center">
                           <Calendar className="h-3 w-3 mr-1" />

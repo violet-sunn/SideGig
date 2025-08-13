@@ -24,6 +24,7 @@ interface Project {
   client?: {
     firstName: string;
     lastName: string;
+    email: string;
     profileImageUrl?: string;
   };
   progress?: number;
@@ -139,7 +140,10 @@ export default function ActiveProjects() {
                         <User className="h-4 w-4 text-purple-600 mr-2" />
                         <span className="text-gray-600">Заказчик:</span>
                         <span className="font-medium ml-1">
-                          {project.client?.firstName} {project.client?.lastName}
+                          {project.client?.firstName && project.client?.lastName 
+                            ? `${project.client.firstName} ${project.client.lastName}`
+                            : project.client?.email?.split("@")[0] || "Клиент"
+                          }
                         </span>
                       </div>
                     </div>

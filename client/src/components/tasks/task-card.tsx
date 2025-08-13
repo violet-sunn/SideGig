@@ -251,14 +251,14 @@ export default function TaskCard({ task, showBidButton = false, showClientInfo =
             <div className="flex items-center space-x-2">
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="text-xs">
-                  {task.client?.firstName?.[0]}{task.client?.lastName?.[0]}
+                  {task.client?.firstName?.[0] || task.client?.email?.[0] || "К"}{task.client?.lastName?.[0] || ""}
                 </AvatarFallback>
               </Avatar>
               <div>
                 <p className="text-sm font-medium text-gray-900">
                   {task.client?.firstName && task.client?.lastName 
                     ? `${task.client.firstName} ${task.client.lastName}`
-                    : "Клиент"
+                    : task.client?.email?.split("@")[0] || "Клиент"
                   }
                 </p>
                 <p className="text-xs text-gray-500">

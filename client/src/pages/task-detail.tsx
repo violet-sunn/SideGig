@@ -56,6 +56,7 @@ interface Task {
   client?: {
     firstName: string;
     lastName: string;
+    email: string;
     profileImageUrl?: string;
   };
 }
@@ -855,7 +856,10 @@ export default function TaskDetail() {
                         <User className="h-4 w-4 text-purple-600 mr-2" />
                         <span className="text-gray-600">Заказчик:</span>
                         <span className="font-medium ml-1">
-                          {task.client?.firstName} {task.client?.lastName}
+                          {task.client?.firstName && task.client?.lastName 
+                            ? `${task.client.firstName} ${task.client.lastName}`
+                            : task.client?.email?.split("@")[0] || "Клиент"
+                          }
                         </span>
                       </div>
                     </CardContent>
