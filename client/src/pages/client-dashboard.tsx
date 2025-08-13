@@ -25,6 +25,7 @@ import {
 import { Link } from "wouter";
 
 export default function ClientDashboard() {
+  console.log('[ClientDashboard] Component loaded');
   const { toast } = useToast();
   const { isAuthenticated, isLoading, user } = useAuth();
   const queryClient = useQueryClient();
@@ -103,13 +104,23 @@ export default function ClientDashboard() {
 
 
 
-  if (isLoading || !isAuthenticated) {
+  console.log('[ClientDashboard] Auth state:', { isLoading, isAuthenticated, user: !!user });
+
+  if (isLoading) {
+    console.log('[ClientDashboard] Showing loading...');
     return (
       <div className="h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
       </div>
     );
   }
+
+  if (!isAuthenticated || !user) {
+    console.log('[ClientDashboard] Not authenticated or no user, returning null');
+    return null;
+  }
+
+  console.log('[ClientDashboard] Rendering dashboard for user:', user.id);
 
   const getStatusColor = (status: string) => {
     switch (status) {
