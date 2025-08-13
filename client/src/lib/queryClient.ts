@@ -41,18 +41,17 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     const [url, params] = queryKey as [string, any?];
+    let finalUrl = url;
     const headers: any = {};
     
-    // Add impersonation header for development
-    if (import.meta.env.DEV) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const impersonateId = urlParams.get('impersonate');
-      if (impersonateId) {
-        headers['x-impersonate'] = impersonateId;
-      }
+    // Handle impersonation parameter from query key
+    if (import.meta.env.DEV && params?.impersonate) {
+      const urlObj = new URL(url, window.location.origin);
+      urlObj.searchParams.set('impersonate', params.impersonate);
+      finalUrl = urlObj.pathname + urlObj.search;
     }
     
-    const res = await fetch(url, {
+    const res = await fetch(finalUrl, {
       headers,
       credentials: "include",
     });

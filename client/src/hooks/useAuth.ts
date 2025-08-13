@@ -6,11 +6,13 @@ export function useAuth() {
   const urlParams = new URLSearchParams(window.location.search);
   const impersonateId = urlParams.get('impersonate');
   
+  // Only use impersonation in development and when explicitly set
+  const shouldImpersonate = process.env.NODE_ENV === 'development' && impersonateId;
+  
   const { data: user, isLoading } = useQuery<User>({
-    queryKey: ["/api/auth/user", { impersonate: impersonateId }],
+    queryKey: shouldImpersonate ? ["/api/auth/user", { impersonate: impersonateId }] : ["/api/auth/user"],
     retry: false,
   });
-
 
   return {
     user,

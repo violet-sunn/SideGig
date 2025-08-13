@@ -29,9 +29,12 @@ function NotificationItem({
       onMarkAsRead(notification.id);
     }
     
-    // Navigate to action URL if provided
+    // Navigate to action URL if provided, but don't preserve impersonation
     if (notification.actionUrl) {
-      window.location.href = notification.actionUrl;
+      // Extract path from URL without query parameters to avoid impersonation issues
+      const url = new URL(notification.actionUrl, window.location.origin);
+      const cleanPath = url.pathname;
+      window.location.href = cleanPath;
     }
   };
 

@@ -136,3 +136,11 @@ Preferred communication style: Simple, everyday language.
 - **Task Cards**: Updated task-card component to display Definition of Done criteria
 - **Task Details**: Enhanced task-detail page with comprehensive criteria display
 - **Storage Integration**: Updated storage queries to include definitionOfDone field
+
+### User Role State Management Fix ✅ (August 2025)
+- **Navigation Issue**: Fixed critical bug where "Назад к задачам" button and notifications changed user role state
+- **Impersonation Logic**: Corrected useAuth hook to properly handle development impersonation parameters
+- **Navigation Overhaul**: Updated navigation utilities to only preserve impersonation for admin flows
+- **Query Client Fix**: Enhanced query client to properly handle impersonation parameters in query keys
+- **Notification Security**: Fixed notification bell navigation to prevent unintended role switching
+- **State Integrity**: Ensured user role remains consistent across all navigation actions
