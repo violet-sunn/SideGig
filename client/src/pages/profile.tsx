@@ -128,7 +128,7 @@ export default function Profile() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("PATCH", "/api/profile", data);
+      const response = await apiRequest("/api/profile", "PATCH", data);
       return response.json();
     },
     onSuccess: () => {
