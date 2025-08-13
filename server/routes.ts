@@ -1030,7 +1030,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Notification endpoints
-  app.get('/api/notifications', isAuthenticated, async (req: any, res) => {
+  app.get('/api/notifications', devAuthBypass, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const limit = parseInt(req.query.limit as string) || 50;
@@ -1042,7 +1042,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/notifications/unread-count', isAuthenticated, async (req: any, res) => {
+  app.get('/api/notifications/unread-count', devAuthBypass, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       const count = await storage.getUnreadNotificationCount(userId);
@@ -1053,7 +1053,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/notifications/:id/read', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/notifications/:id/read', devAuthBypass, async (req: any, res) => {
     try {
       const notificationId = req.params.id;
       await storage.markNotificationAsRead(notificationId);
@@ -1064,7 +1064,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/notifications/read-all', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/notifications/read-all', devAuthBypass, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
       await storage.markAllNotificationsAsRead(userId);
@@ -1075,7 +1075,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/notifications/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/notifications/:id', devAuthBypass, async (req: any, res) => {
     try {
       const notificationId = req.params.id;
       await storage.deleteNotification(notificationId);
