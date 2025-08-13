@@ -84,7 +84,7 @@ export default function TaskDetail() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
-  const [bidAmount, setBidAmount] = useState<number | null>(null);
+  const [bidAmount, setBidAmount] = useState("");
   const [bidDeadline, setBidDeadline] = useState<Date | null>(null);
   const [bidProposal, setBidProposal] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
@@ -119,7 +119,7 @@ export default function TaskDetail() {
       toast({ title: "Заявка отправлена!", description: "Ваша заявка успешно отправлена заказчику" });
       queryClient.invalidateQueries({ queryKey: ["/api/bids/task", taskId] });
       queryClient.invalidateQueries({ queryKey: ["/api/bids/my"] });
-      setBidAmount(null);
+      setBidAmount("");
       setBidDeadline(null);
       setBidProposal("");
     },
@@ -225,7 +225,7 @@ export default function TaskDetail() {
 
     createBidMutation.mutate({
       taskId,
-      amount: bidAmount,
+      amount: parseFloat(bidAmount),
       deadline: bidDeadline,
       proposal: bidProposal,
     });
@@ -443,7 +443,7 @@ export default function TaskDetail() {
                                 <NumberInput
                                   id="amount"
                                   value={bidAmount}
-                                  onChange={(value) => setBidAmount(value)}
+                                  onChange={setBidAmount}
                                   placeholder="Введите вашу цену"
                                   min={1}
                                   max={10000000}
@@ -487,7 +487,7 @@ export default function TaskDetail() {
                                 <div className="flex items-center justify-between">
                                   <span className="text-gray-600">Ваша цена:</span>
                                   <span className="font-medium">
-                                    {bidAmount ? `₽${bidAmount.toLocaleString()}` : '—'}
+                                    {bidAmount ? `₽${parseFloat(bidAmount).toLocaleString()}` : '—'}
                                   </span>
                                 </div>
                                 <div className="flex items-center justify-between">
@@ -499,10 +499,10 @@ export default function TaskDetail() {
                                 <div className="flex items-center justify-between">
                                   <span className="text-gray-600">Разница по цене:</span>
                                   <span className={`font-medium ${
-                                    bidAmount && bidAmount < task.budget ? 'text-green-600' : 
-                                    bidAmount && bidAmount > task.budget ? 'text-red-600' : 'text-gray-600'
+                                    bidAmount && parseFloat(bidAmount) < task.budget ? 'text-green-600' : 
+                                    bidAmount && parseFloat(bidAmount) > task.budget ? 'text-red-600' : 'text-gray-600'
                                   }`}>
-                                    {bidAmount ? `${bidAmount > task.budget ? '+' : ''}₽${(bidAmount - task.budget).toLocaleString()}` : '—'}
+                                    {bidAmount ? `${parseFloat(bidAmount) > task.budget ? '+' : ''}₽${(parseFloat(bidAmount) - task.budget).toLocaleString()}` : '—'}
                                   </span>
                                 </div>
                                 <div className="flex items-center justify-between">

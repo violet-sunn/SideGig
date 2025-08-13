@@ -14,6 +14,7 @@ export function useAuth() {
   
   // Clean up impersonation parameter from URL if we're in production
   if (!isDevelopment && impersonateId) {
+    console.warn('[useAuth] Impersonation not allowed in production, cleaning URL');
     const newUrl = new URL(window.location.href);
     newUrl.searchParams.delete('impersonate');
     window.history.replaceState({}, '', newUrl.pathname + newUrl.search);
@@ -47,7 +48,7 @@ export function useAuth() {
     }
     
     // Update stored role
-    localStorage.setItem(userKey, user.role);
+    localStorage.setItem(userKey, user.role || '');
     
     if (isDevelopment) {
       console.log(`[useAuth] User data:`, {
@@ -58,6 +59,7 @@ export function useAuth() {
         role: user.role,
         shouldImpersonate,
         impersonateId,
+        isDevelopment,
         queryKey: shouldImpersonate ? ["/api/auth/user", { impersonate: impersonateId }] : ["/api/auth/user"]
       });
     }
