@@ -41,6 +41,13 @@ export default function BidCard({ bid, isOwner = false, canAccept = false, canRe
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
+  // Get impersonation parameter for API requests
+  const urlParams = new URLSearchParams(window.location.search);
+  const impersonateId = urlParams.get('impersonate');
+  const isDevelopment = import.meta.env.DEV;
+  const shouldImpersonate = isDevelopment && impersonateId;
+  const queryParams = shouldImpersonate ? { impersonate: impersonateId } : undefined;
+  
   const [isCounterOfferOpen, setIsCounterOfferOpen] = useState(false);
   const [counterOffer, setCounterOffer] = useState({
     amount: bid.amount || "",
@@ -50,7 +57,17 @@ export default function BidCard({ bid, isOwner = false, canAccept = false, canRe
 
   const updateBidMutation = useMutation({
     mutationFn: async ({ bidId, status }: { bidId: string; status: string }) => {
-      const response = await apiRequest("PATCH", `/api/bids/${bidId}/status`, { status });
+      let endpoint = `/api/bids/${bidId}/status`;
+      let body: any = { status };
+      
+      if (status === "accepted") {
+        endpoint = `/api/bids/${bidId}/accept`;
+        body = {};
+      }
+      
+      // Add impersonation to query params, not body
+      const url = queryParams ? `${endpoint}?impersonate=${queryParams.impersonate}` : endpoint;
+      const response = await apiRequest("PATCH", url, body);
       return response.json();
     },
     onSuccess: (_, { status }) => {
@@ -58,8 +75,9 @@ export default function BidCard({ bid, isOwner = false, canAccept = false, canRe
         title: "Успешно!",
         description: status === "accepted" ? "Заявка принята" : "Заявка отклонена",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/bids/task"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks/my"] });
+      queryClient.invalidateQueries({ queryKey: queryParams ? ["/api/bids/task", queryParams] : ["/api/bids/task"] });
+      queryClient.invalidateQueries({ queryKey: queryParams ? ["/api/tasks/my", queryParams] : ["/api/tasks/my"] });
+      queryClient.invalidateQueries({ queryKey: queryParams ? ["/api/bids/pending", queryParams] : ["/api/bids/pending"] });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
@@ -83,7 +101,8 @@ export default function BidCard({ bid, isOwner = false, canAccept = false, canRe
 
   const submitCounterOfferMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("PATCH", `/api/bids/${bid.id}/counter-offer`, data);
+      const url = queryParams ? `/api/bids/${bid.id}/counter-offer?impersonate=${queryParams.impersonate}` : `/api/bids/${bid.id}/counter-offer`;
+      const response = await apiRequest("PATCH", url, data);
       return response.json();
     },
     onSuccess: () => {
@@ -92,7 +111,7 @@ export default function BidCard({ bid, isOwner = false, canAccept = false, canRe
         description: "Встречное предложение отправлено",
       });
       setIsCounterOfferOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["/api/bids/task"] });
+      queryClient.invalidateQueries({ queryKey: queryParams ? ["/api/bids/task", queryParams] : ["/api/bids/task"] });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
