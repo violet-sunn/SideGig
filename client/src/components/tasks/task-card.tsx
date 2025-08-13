@@ -52,6 +52,10 @@ export default function TaskCard({ task, showBidButton = false, showClientInfo =
   useEffect(() => {
     if (autoOpenBid) {
       setIsDialogOpen(true);
+      // Clear the openBid parameter from URL to prevent repeated auto-opens
+      const url = new URL(window.location.href);
+      url.searchParams.delete('openBid');
+      window.history.replaceState({}, '', url.toString());
     }
   }, [autoOpenBid]);
 

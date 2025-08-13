@@ -253,8 +253,8 @@ export default function BrowseTasks() {
                   <Button 
                     onClick={() => {
                       setSearchTerm("");
-                      setCategoryFilter("");
-                      setBudgetFilter("");
+                      setCategoryFilter("all");
+                      setBudgetFilter("all");
                     }}
                   >
                     Сбросить фильтры

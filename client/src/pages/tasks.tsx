@@ -18,7 +18,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Search, Filter, Plus, ListTodo } from "lucide-react";
 import { Link } from "wouter";
-import { buildUrl } from "@/lib/navigation";
+
 
 export default function Tasks() {
   const { toast } = useToast();
@@ -236,7 +236,7 @@ export default function Tasks() {
                           {task.category && (
                             <Badge variant="outline">{task.category}</Badge>
                           )}
-                          <Link href={buildUrl(`/task/${task.id}`)}>
+                          <Link href={`/tasks/${task.id}`}>
                             <Button variant="outline" size="sm">
                               Подробнее
                             </Button>
