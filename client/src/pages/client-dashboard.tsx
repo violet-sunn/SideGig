@@ -30,6 +30,13 @@ export default function ClientDashboard() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const queryClient = useQueryClient();
 
+  // Get impersonation parameter for query keys
+  const urlParams = new URLSearchParams(window.location.search);
+  const impersonateId = urlParams.get('impersonate');
+  const isDevelopment = import.meta.env.DEV;
+  const shouldImpersonate = isDevelopment && impersonateId;
+  const queryParams = shouldImpersonate ? { impersonate: impersonateId } : undefined;
+
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -51,19 +58,19 @@ export default function ClientDashboard() {
     totalSpent: string;
     averageRating: string;
   }>({
-    queryKey: ["/api/users/stats"],
+    queryKey: queryParams ? ["/api/users/stats", queryParams] : ["/api/users/stats"],
     enabled: isAuthenticated,
     retry: false,
   });
 
   const { data: recentTasks, isLoading: tasksLoading } = useQuery<any[]>({
-    queryKey: ["/api/tasks/my"],
+    queryKey: queryParams ? ["/api/tasks/my", queryParams] : ["/api/tasks/my"],
     enabled: isAuthenticated,
     retry: false,
   });
 
   const { data: pendingBids, isLoading: bidsLoading } = useQuery<any[]>({
-    queryKey: ["/api/bids/pending"],
+    queryKey: queryParams ? ["/api/bids/pending", queryParams] : ["/api/bids/pending"],
     enabled: isAuthenticated,
     retry: false,
   });
@@ -81,6 +88,11 @@ export default function ClientDashboard() {
       queryClient.invalidateQueries({ queryKey: ["/api/bids/pending"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/my"] });
       queryClient.invalidateQueries({ queryKey: ["/api/users/stats"] });
+      if (queryParams) {
+        queryClient.invalidateQueries({ queryKey: ["/api/bids/pending", queryParams] });
+        queryClient.invalidateQueries({ queryKey: ["/api/tasks/my", queryParams] });
+        queryClient.invalidateQueries({ queryKey: ["/api/users/stats", queryParams] });
+      }
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
