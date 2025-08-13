@@ -84,7 +84,7 @@ export default function TaskDetail() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
-  const [bidAmount, setBidAmount] = useState("");
+  const [bidAmount, setBidAmount] = useState<number | null>(null);
   const [bidDeadline, setBidDeadline] = useState<Date | null>(null);
   const [bidProposal, setBidProposal] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
@@ -119,7 +119,7 @@ export default function TaskDetail() {
       toast({ title: "Заявка отправлена!", description: "Ваша заявка успешно отправлена заказчику" });
       queryClient.invalidateQueries({ queryKey: ["/api/bids/task", taskId] });
       queryClient.invalidateQueries({ queryKey: ["/api/bids/my"] });
-      setBidAmount("");
+      setBidAmount(null);
       setBidDeadline(null);
       setBidProposal("");
     },
@@ -225,7 +225,7 @@ export default function TaskDetail() {
 
     createBidMutation.mutate({
       taskId,
-      amount: parseFloat(bidAmount),
+      amount: bidAmount,
       deadline: bidDeadline,
       proposal: bidProposal,
     });
@@ -418,51 +418,119 @@ export default function TaskDetail() {
                           </CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <form onSubmit={handleSubmitBid} className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                            <div className="flex items-start gap-3">
+                              <div className="bg-blue-100 rounded-full p-2">
+                                <DollarSign className="h-4 w-4 text-blue-600" />
+                              </div>
                               <div>
-                                <Label htmlFor="amount">Стоимость (₽)</Label>
-                                <Input
+                                <h4 className="font-medium text-blue-900 mb-1">Встречное предложение</h4>
+                                <p className="text-sm text-blue-700">
+                                  Вы можете предложить свою цену и срок выполнения. 
+                                  Заказчик увидит ваше предложение и сможет его принять или обсудить.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <form onSubmit={handleSubmitBid} className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <div>
+                                <Label htmlFor="amount" className="text-base font-medium">Ваша цена (₽)</Label>
+                                <p className="text-sm text-gray-500 mb-2">
+                                  Бюджет заказчика: ₽{task.budget.toLocaleString()}
+                                </p>
+                                <NumberInput
                                   id="amount"
-                                  type="number"
                                   value={bidAmount}
-                                  onChange={(e) => setBidAmount(e.target.value)}
-                                  placeholder="Введите стоимость"
+                                  onChange={(value) => setBidAmount(value)}
+                                  placeholder="Введите вашу цену"
+                                  min={1}
+                                  max={10000000}
+                                  currency={true}
                                   required
                                 />
                               </div>
                               <div>
-                                <Label htmlFor="deadline">Срок выполнения</Label>
-                                <Input
+                                <Label htmlFor="deadline" className="text-base font-medium">Ваш срок выполнения</Label>
+                                <p className="text-sm text-gray-500 mb-2">
+                                  Срок заказчика: {new Date(task.deadline).toLocaleDateString('ru-RU')}
+                                </p>
+                                <DatePicker
                                   id="deadline"
-                                  type="date"
-                                  value={bidDeadline ? bidDeadline.toISOString().split("T")[0] : ""}
-                                  onChange={(e) => setBidDeadline(e.target.value ? new Date(e.target.value) : null)}
-                                  min={new Date().toISOString().split("T")[0]}
+                                  value={bidDeadline || undefined}
+                                  onChange={(date) => setBidDeadline(date || null)}
+                                  placeholder="Выберите срок"
                                   required
                                 />
                               </div>
                             </div>
                             
                             <div>
-                              <Label htmlFor="proposal">Предложение</Label>
+                              <Label htmlFor="proposal" className="text-base font-medium">Ваше предложение</Label>
+                              <p className="text-sm text-gray-500 mb-2">
+                                Расскажите, как вы планируете выполнить задачу и почему выбрали именно эту цену и срок
+                              </p>
                               <Textarea
                                 id="proposal"
                                 value={bidProposal}
                                 onChange={(e) => setBidProposal(e.target.value)}
-                                placeholder="Опишите как вы планируете выполнить эту задачу..."
-                                rows={4}
+                                placeholder="Например: 'Готов выполнить задачу за указанную сумму, так как имею опыт в данной области. Предлагаю завершить на 2 дня раньше за счет использования готовых решений...'"
+                                rows={5}
                                 required
                               />
                             </div>
 
+                            <div className="bg-gray-50 border rounded-lg p-4">
+                              <h4 className="font-medium text-gray-900 mb-2">Детали вашего предложения:</h4>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-gray-600">Ваша цена:</span>
+                                  <span className="font-medium">
+                                    {bidAmount ? `₽${bidAmount.toLocaleString()}` : '—'}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-gray-600">Ваш срок:</span>
+                                  <span className="font-medium">
+                                    {bidDeadline ? bidDeadline.toLocaleDateString('ru-RU') : '—'}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-gray-600">Разница по цене:</span>
+                                  <span className={`font-medium ${
+                                    bidAmount && bidAmount < task.budget ? 'text-green-600' : 
+                                    bidAmount && bidAmount > task.budget ? 'text-red-600' : 'text-gray-600'
+                                  }`}>
+                                    {bidAmount ? `${bidAmount > task.budget ? '+' : ''}₽${(bidAmount - task.budget).toLocaleString()}` : '—'}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-gray-600">Разница по сроку:</span>
+                                  <span className={`font-medium ${
+                                    bidDeadline && bidDeadline < new Date(task.deadline) ? 'text-green-600' : 
+                                    bidDeadline && bidDeadline > new Date(task.deadline) ? 'text-red-600' : 'text-gray-600'
+                                  }`}>
+                                    {bidDeadline ? (
+                                      bidDeadline < new Date(task.deadline) ? 
+                                        `${Math.ceil((new Date(task.deadline).getTime() - bidDeadline.getTime()) / (1000 * 60 * 60 * 24))} дн. раньше` :
+                                        bidDeadline > new Date(task.deadline) ?
+                                        `+${Math.ceil((bidDeadline.getTime() - new Date(task.deadline).getTime()) / (1000 * 60 * 60 * 24))} дн.` :
+                                        'По плану'
+                                    ) : '—'}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
                             <Button 
                               type="submit" 
-                              disabled={createBidMutation.isPending}
-                              className="w-full"
+                              disabled={createBidMutation.isPending || !bidAmount || !bidDeadline || !bidProposal.trim()}
+                              className="w-full h-12 text-base"
+                              size="lg"
                             >
-                              <Send className="h-4 w-4 mr-2" />
-                              {createBidMutation.isPending ? "Отправка..." : "Подать заявку"}
+                              <Send className="h-5 w-5 mr-2" />
+                              {createBidMutation.isPending ? "Отправка предложения..." : "Отправить предложение"}
                             </Button>
                           </form>
                         </CardContent>
