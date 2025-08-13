@@ -174,7 +174,7 @@ export default function Profile() {
         lastName: profile.lastName || user?.lastName || "",
         email: profile.email || user?.email || "",
         bio: profile.bio || "",
-        skills: profile.skills || "",
+        skills: Array.isArray(profile.skills) ? profile.skills.join(", ") : (profile.skills || ""),
         location: profile.location || "",
         hourlyRate: profile.hourlyRate || "",
         title: profile.title || "",
@@ -191,6 +191,8 @@ export default function Profile() {
       setPortfolioItems(portfolio);
     }
   }, [profile, portfolio, user]);
+
+  const userRole = user?.role;
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -240,7 +242,7 @@ export default function Profile() {
         lastName: profile.lastName || user?.lastName || "",
         email: profile.email || user?.email || "",
         bio: profile.bio || "",
-        skills: profile.skills || "",
+        skills: Array.isArray(profile.skills) ? profile.skills.join(", ") : (profile.skills || ""),
         location: profile.location || "",
         hourlyRate: profile.hourlyRate || "",
         title: profile.title || "",
@@ -298,11 +300,11 @@ export default function Profile() {
     );
   }
 
-  const userRole = user?.role === "client" ? "client" : "freelancer";
+
 
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar userRole={userRole} />
+      <Sidebar userRole={userRole as any} />
       
       <main className="flex-1 overflow-y-auto">
         <div className="p-8">
@@ -1115,7 +1117,7 @@ export default function Profile() {
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-wrap gap-2">
-                      {profileData.skills.split(",").map((skill, index) => (
+                      {(typeof profileData.skills === 'string' ? profileData.skills.split(",") : profileData.skills || []).map((skill, index) => (
                         <Badge key={index} variant="secondary">
                           {skill.trim()}
                         </Badge>
