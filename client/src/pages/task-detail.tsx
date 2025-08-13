@@ -284,7 +284,7 @@ export default function TaskDetail() {
           <div className="p-8">
             <div className="max-w-4xl mx-auto text-center">
               <h1 className="text-2xl font-bold mb-4">Задача не найдена</h1>
-              <Button onClick={() => navigate("/browse-tasks", false)}>
+              <Button onClick={() => navigate("/browse-tasks")}>
                 Вернуться к задачам
               </Button>
             </div>
@@ -307,7 +307,7 @@ export default function TaskDetail() {
             <div className="mb-8">
               <Button 
                 variant="ghost" 
-                onClick={() => navigate("/browse-tasks", false)}
+                onClick={() => navigate("/browse-tasks")}
                 className="mb-4"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
