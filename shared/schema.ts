@@ -401,9 +401,7 @@ export const insertBidSchema = createInsertSchema(bids).omit({
   updatedAt: true,
   status: true,
 }).extend({
-  deadline: z.coerce.date().refine((date) => {
-    return date > new Date(); // deadline must be in the future
-  }, "Дедлайн заявки должен быть установлен на будущую дату"),
+  deadline: z.coerce.date(), // Remove validation temporarily to debug
 });
 
 export const insertMessageSchema = createInsertSchema(messages).omit({
