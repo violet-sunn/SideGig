@@ -110,6 +110,38 @@ export default function CreateTask() {
     },
   });
 
+  const saveDraftMutation = useMutation({
+    mutationFn: async (taskData: any) => {
+      const response = await apiRequest("/api/tasks/draft", "POST", taskData);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Успешно!",
+        description: "Черновик сохранен",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/my"] });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Ошибка",
+        description: "Не удалось сохранить черновик",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -174,6 +206,29 @@ export default function CreateTask() {
       ...prev,
       skills: prev.skills.filter(skill => skill !== skillToRemove)
     }));
+  };
+
+  const handleSaveDraft = () => {
+    if (!formData.title) {
+      toast({
+        title: "Ошибка",
+        description: "Для сохранения черновика нужно указать хотя бы название задачи",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    saveDraftMutation.mutate({
+      title: formData.title,
+      description: formData.description,
+      definitionOfDone: formData.definitionOfDone,
+      category: formData.category,
+      budget: formData.budget ? parseFloat(formData.budget) : null,
+      deadline: formData.deadline ? formData.deadline.toISOString() : null,
+      priority: formData.priority,
+      skills: formData.skills,
+      status: "draft"
+    });
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -369,8 +424,13 @@ export default function CreateTask() {
                   </div>
 
                   <div className="flex justify-between items-center pt-6 border-t">
-                    <Button type="button" variant="outline">
-                      Сохранить как черновик
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      onClick={handleSaveDraft}
+                      disabled={saveDraftMutation.isPending}
+                    >
+                      {saveDraftMutation.isPending ? "Сохранение..." : "Сохранить как черновик"}
                     </Button>
                     <Button 
                       type="submit" 

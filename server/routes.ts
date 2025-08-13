@@ -6,6 +6,7 @@ import { setupWebSocketServer, NotificationService } from "./notifications";
 import { z } from "zod";
 import {
   insertTaskSchema,
+  insertDraftTaskSchema,
   insertBidSchema,
   insertMessageSchema,
   insertReviewSchema,
@@ -173,6 +174,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating task:", error);
       res.status(500).json({ message: "Failed to create task" });
+    }
+  });
+
+  // Save task as draft
+  app.post("/api/tasks/draft", devAuthBypass, async (req: any, res) => {
+    try {
+      const userId = getEffectiveUserId(req);
+      
+      // For draft, only title is required
+      if (!req.body.title) {
+        return res.status(400).json({ message: "Title is required for saving draft" });
+      }
+
+      const taskData = insertDraftTaskSchema.parse({
+        ...req.body,
+        clientId: userId,
+      });
+
+      const task = await storage.createTask(taskData);
+      res.json(task);
+    } catch (error) {
+      console.error("Error saving draft:", error);
+      res.status(500).json({ message: "Failed to save draft" });
     }
   });
 

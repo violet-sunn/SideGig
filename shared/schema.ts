@@ -31,6 +31,7 @@ export const userRoleEnum = pgEnum("user_role", ["client", "freelancer", "modera
 
 // Task status enum
 export const taskStatusEnum = pgEnum("task_status", [
+  "draft",
   "open",
   "in_progress", 
   "in_review",
@@ -375,6 +376,23 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
 }).extend({
   budget: z.coerce.string(), // Accept numbers from frontend, convert to string
   deadline: z.coerce.date().optional(), // Temporarily remove date validation
+});
+
+// Draft task schema with relaxed validation
+export const insertDraftTaskSchema = createInsertSchema(tasks).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  assignedFreelancerId: true,
+}).extend({
+  budget: z.coerce.number().optional().nullable(),
+  deadline: z.coerce.date().optional().nullable(),
+  description: z.string().optional().default(""),
+  category: z.string().optional().default("Другое"),
+  definitionOfDone: z.string().optional().default(""),
+  priority: z.string().optional().default("normal"),
+  skills: z.array(z.string()).optional().default([]),
+  status: z.literal("draft").default("draft"),
 });
 
 export const insertBidSchema = createInsertSchema(bids).omit({
