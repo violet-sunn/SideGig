@@ -34,8 +34,15 @@ export default function ActiveProjects() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  // Get impersonation parameter for query keys
+  const urlParams = new URLSearchParams(window.location.search);
+  const impersonateId = urlParams.get('impersonate');
+  const isDevelopment = import.meta.env.DEV;
+  const shouldImpersonate = isDevelopment && impersonateId;
+  const queryParams = shouldImpersonate ? { impersonate: impersonateId } : undefined;
+
   const { data: projects = [], isLoading } = useQuery<Project[]>({
-    queryKey: ["/api/tasks/active"],
+    queryKey: queryParams ? ["/api/tasks/active", queryParams] : ["/api/tasks/active"],
     enabled: !!user && user.role === "freelancer",
   });
 

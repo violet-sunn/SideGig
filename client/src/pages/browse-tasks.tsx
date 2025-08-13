@@ -34,7 +34,11 @@ export default function BrowseTasks() {
   const urlParams = new URLSearchParams(window.location.search);
   const openBidTaskId = urlParams.get('openBid');
   
-
+  // Get impersonation parameter for query keys
+  const impersonateId = urlParams.get('impersonate');
+  const isDevelopment = import.meta.env.DEV;
+  const shouldImpersonate = isDevelopment && impersonateId;
+  const queryParams = shouldImpersonate ? { impersonate: impersonateId } : undefined;
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -52,7 +56,7 @@ export default function BrowseTasks() {
   }, [isAuthenticated, isLoading, toast]);
 
   const { data: tasks, isLoading: tasksLoading, error } = useQuery<any[]>({
-    queryKey: ["/api/tasks/available"],
+    queryKey: queryParams ? ["/api/tasks/available", queryParams] : ["/api/tasks/available"],
     enabled: isAuthenticated,
     retry: false,
   });

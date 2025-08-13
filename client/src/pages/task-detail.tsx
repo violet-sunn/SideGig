@@ -97,18 +97,25 @@ export default function TaskDetail() {
 
   const taskId = params.id;
 
+  // Get impersonation parameter for query keys
+  const urlParams = new URLSearchParams(window.location.search);
+  const impersonateId = urlParams.get('impersonate');
+  const isDevelopment = import.meta.env.DEV;
+  const shouldImpersonate = isDevelopment && impersonateId;
+  const queryParams = shouldImpersonate ? { impersonate: impersonateId } : undefined;
+
   const { data: task, isLoading: taskLoading } = useQuery<Task>({
-    queryKey: [`/api/tasks/${taskId}`],
+    queryKey: queryParams ? [`/api/tasks/${taskId}`, queryParams] : [`/api/tasks/${taskId}`],
     enabled: !!taskId,
   });
 
   const { data: bids = [], isLoading: bidsLoading } = useQuery<Bid[]>({
-    queryKey: ["/api/bids/task", taskId],
+    queryKey: queryParams ? ["/api/bids/task", taskId, queryParams] : ["/api/bids/task", taskId],
     enabled: !!taskId,
   });
 
   const { data: messages = [], isLoading: messagesLoading } = useQuery<any[]>({
-    queryKey: [`/api/messages/task/${taskId}`],
+    queryKey: queryParams ? [`/api/messages/task/${taskId}`, queryParams] : [`/api/messages/task/${taskId}`],
     enabled: !!taskId,
   });
 
@@ -285,7 +292,7 @@ export default function TaskDetail() {
           <div className="p-8">
             <div className="max-w-4xl mx-auto text-center">
               <h1 className="text-2xl font-bold mb-4">Задача не найдена</h1>
-              <Button onClick={() => navigate("/browse-tasks")}>
+              <Button onClick={() => navigate(buildUrl(user.role === "client" ? "/tasks" : "/browse-tasks"))}>
                 Вернуться к задачам
               </Button>
             </div>
@@ -308,7 +315,7 @@ export default function TaskDetail() {
             <div className="mb-8">
               <Button 
                 variant="ghost" 
-                onClick={() => navigate("/browse-tasks")}
+                onClick={() => navigate(buildUrl(user.role === "client" ? "/tasks" : "/browse-tasks"))}
                 className="mb-4"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />

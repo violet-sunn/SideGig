@@ -48,6 +48,13 @@ export default function TaskCard({ task, showBidButton = false, showClientInfo =
     proposal: "",
   });
 
+  // Get impersonation parameter for query invalidation
+  const urlParams = new URLSearchParams(window.location.search);
+  const impersonateId = urlParams.get('impersonate');
+  const isDevelopment = import.meta.env.DEV;
+  const shouldImpersonate = isDevelopment && impersonateId;
+  const queryParams = shouldImpersonate ? { impersonate: impersonateId } : undefined;
+
   // Auto-open dialog when autoOpenBid is true
   useEffect(() => {
     if (autoOpenBid) {
@@ -71,8 +78,8 @@ export default function TaskCard({ task, showBidButton = false, showClientInfo =
       });
       setIsDialogOpen(false);
       setBidData({ amount: "", deadline: null, proposal: "" });
-      queryClient.invalidateQueries({ queryKey: ["/api/bids/my"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks/available"] });
+      queryClient.invalidateQueries({ queryKey: queryParams ? ["/api/bids/my", queryParams] : ["/api/bids/my"] });
+      queryClient.invalidateQueries({ queryKey: queryParams ? ["/api/tasks/available", queryParams] : ["/api/tasks/available"] });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
