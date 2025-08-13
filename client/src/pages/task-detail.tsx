@@ -125,8 +125,8 @@ export default function TaskDetail() {
     },
     onSuccess: () => {
       toast({ title: "Заявка отправлена!", description: "Ваша заявка успешно отправлена заказчику" });
-      queryClient.invalidateQueries({ queryKey: ["/api/bids/task", taskId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/bids/my"] });
+      queryClient.invalidateQueries({ queryKey: queryParams ? ["/api/bids/task", taskId, queryParams] : ["/api/bids/task", taskId] });
+      queryClient.invalidateQueries({ queryKey: queryParams ? ["/api/bids/my", queryParams] : ["/api/bids/my"] });
       setBidAmount("");
       setBidDeadline(null);
       setBidProposal("");
@@ -147,8 +147,8 @@ export default function TaskDetail() {
     },
     onSuccess: () => {
       toast({ title: "Заявка принята!", description: "Исполнитель назначен на проект" });
-      queryClient.invalidateQueries({ queryKey: [`/api/tasks/${taskId}`] });
-      queryClient.invalidateQueries({ queryKey: ["/api/bids/task", taskId] });
+      queryClient.invalidateQueries({ queryKey: queryParams ? [`/api/tasks/${taskId}`, queryParams] : [`/api/tasks/${taskId}`] });
+      queryClient.invalidateQueries({ queryKey: queryParams ? ["/api/bids/task", taskId, queryParams] : ["/api/bids/task", taskId] });
     },
     onError: (error) => {
       toast({ title: "Ошибка", description: "Не удалось принять заявку", variant: "destructive" });
@@ -163,7 +163,7 @@ export default function TaskDetail() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/messages/task/${taskId}`] });
+      queryClient.invalidateQueries({ queryKey: queryParams ? [`/api/messages/task/${taskId}`, queryParams] : [`/api/messages/task/${taskId}`] });
       setNewMessage("");
     },
     onError: (error) => {
@@ -177,7 +177,7 @@ export default function TaskDetail() {
     },
     onSuccess: () => {
       toast({ title: "Работа отправлена!", description: "Работа отправлена заказчику на проверку" });
-      queryClient.invalidateQueries({ queryKey: [`/api/tasks/${taskId}`] });
+      queryClient.invalidateQueries({ queryKey: queryParams ? [`/api/tasks/${taskId}`, queryParams] : [`/api/tasks/${taskId}`] });
       setDeliveryMessage("");
     },
     onError: (error) => {
@@ -191,7 +191,7 @@ export default function TaskDetail() {
     },
     onSuccess: () => {
       toast({ title: "Работа принята!", description: "Проект успешно завершен" });
-      queryClient.invalidateQueries({ queryKey: [`/api/tasks/${taskId}`] });
+      queryClient.invalidateQueries({ queryKey: queryParams ? [`/api/tasks/${taskId}`, queryParams] : [`/api/tasks/${taskId}`] });
     },
     onError: (error) => {
       toast({ title: "Ошибка", description: "Не удалось принять работу", variant: "destructive" });
@@ -204,7 +204,7 @@ export default function TaskDetail() {
     },
     onSuccess: () => {
       toast({ title: "Работа отклонена", description: "Фрилансер уведомлен об изменениях" });
-      queryClient.invalidateQueries({ queryKey: [`/api/tasks/${taskId}`] });
+      queryClient.invalidateQueries({ queryKey: queryParams ? [`/api/tasks/${taskId}`, queryParams] : [`/api/tasks/${taskId}`] });
       setRejectionReason("");
     },
     onError: (error) => {
@@ -218,7 +218,7 @@ export default function TaskDetail() {
     },
     onSuccess: () => {
       toast({ title: "Отправлено на доработку", description: "Фрилансер уведомлен о необходимых изменениях" });
-      queryClient.invalidateQueries({ queryKey: [`/api/tasks/${taskId}`] });
+      queryClient.invalidateQueries({ queryKey: queryParams ? [`/api/tasks/${taskId}`, queryParams] : [`/api/tasks/${taskId}`] });
       setRevisionReason("");
       setRevisionDetails("");
     },
