@@ -21,9 +21,16 @@ export function useNotifications() {
   const [isConnected, setIsConnected] = useState(false);
   const [connectionAttempts, setConnectionAttempts] = useState(0);
 
+  // Get impersonation for queryKey
+  const urlParams = new URLSearchParams(window.location.search);
+  const impersonateId = urlParams.get('impersonate');
+  const isDevelopment = import.meta.env.DEV;
+  const shouldImpersonate = isDevelopment && impersonateId;
+  const queryParams = shouldImpersonate ? { impersonate: impersonateId } : undefined;
+
   // Fetch notifications
   const { data: notifications, isLoading } = useQuery<Notification[]>({
-    queryKey: ['/api/notifications'],
+    queryKey: queryParams ? ['/api/notifications', queryParams] : ['/api/notifications'],
     enabled: isAuthenticated,
     staleTime: 30 * 1000, // 30 seconds
     refetchInterval: 60 * 1000, // 1 minute fallback
@@ -31,7 +38,7 @@ export function useNotifications() {
 
   // Fetch unread count
   const { data: unreadCountData } = useQuery<{ count: number }>({
-    queryKey: ['/api/notifications/unread-count'],
+    queryKey: queryParams ? ['/api/notifications/unread-count', queryParams] : ['/api/notifications/unread-count'],
     enabled: isAuthenticated,
     staleTime: 10 * 1000, // 10 seconds
     refetchInterval: 30 * 1000, // 30 seconds
@@ -45,8 +52,8 @@ export function useNotifications() {
       return await apiRequest('PATCH', `/api/notifications/${notificationId}/read`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
+      queryClient.invalidateQueries({ queryKey: queryParams ? ['/api/notifications', queryParams] : ['/api/notifications'] });
+      queryClient.invalidateQueries({ queryKey: queryParams ? ['/api/notifications/unread-count', queryParams] : ['/api/notifications/unread-count'] });
     },
   });
 
@@ -56,8 +63,8 @@ export function useNotifications() {
       return await apiRequest('PATCH', '/api/notifications/read-all');
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
+      queryClient.invalidateQueries({ queryKey: queryParams ? ['/api/notifications', queryParams] : ['/api/notifications'] });
+      queryClient.invalidateQueries({ queryKey: queryParams ? ['/api/notifications/unread-count', queryParams] : ['/api/notifications/unread-count'] });
     },
   });
 
@@ -67,8 +74,8 @@ export function useNotifications() {
       return await apiRequest('DELETE', `/api/notifications/${notificationId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
+      queryClient.invalidateQueries({ queryKey: queryParams ? ['/api/notifications', queryParams] : ['/api/notifications'] });
+      queryClient.invalidateQueries({ queryKey: queryParams ? ['/api/notifications/unread-count', queryParams] : ['/api/notifications/unread-count'] });
     },
   });
 

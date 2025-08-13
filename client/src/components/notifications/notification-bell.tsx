@@ -13,6 +13,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNotifications } from '@/hooks/useNotifications';
 import { formatDistanceToNow } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { buildUrl } from '@/lib/navigation';
 import type { Notification } from '@shared/schema';
 
 function NotificationItem({ 
@@ -29,12 +30,12 @@ function NotificationItem({
       onMarkAsRead(notification.id);
     }
     
-    // Navigate to action URL if provided, but don't preserve impersonation
+    // Navigate to action URL if provided, preserving impersonation
     if (notification.actionUrl) {
-      // Extract path from URL without query parameters to avoid impersonation issues
+      // Extract path from URL and use buildUrl to preserve impersonation
       const url = new URL(notification.actionUrl, window.location.origin);
       const cleanPath = url.pathname;
-      window.location.href = cleanPath;
+      window.location.href = buildUrl(cleanPath);
     }
   };
 

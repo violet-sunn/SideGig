@@ -153,3 +153,13 @@ Preferred communication style: Simple, everyday language.
 - **Navigation Protection**: buildUrl() never preserves impersonation in production builds
 - **Query Protection**: API requests never include impersonate parameters in production
 - **Security Comments**: Added explicit SECURITY comments for all impersonation-related code
+
+### Task Routing Impersonation Fix ✅ (August 2025)
+- **Critical Fix**: Fixed task routing system that was causing impersonation resets during navigation
+- **Query Key Updates**: All task-related pages now include impersonate parameter in React Query queryKey:
+  - tasks.tsx, task-detail.tsx, browse-tasks.tsx, active-projects.tsx, my-bids.tsx
+  - messages.tsx, payments.tsx, disputes.tsx, task-card.tsx component
+- **Navigation Fixes**: "Назад к задачам" button now uses buildUrl() to preserve impersonation
+- **Notification System**: Fixed NotificationBell component to preserve impersonation during navigation
+- **Cache Management**: All query invalidations now respect impersonation parameters
+- **Stable Impersonation**: Verified impersonation works consistently across all platform features
