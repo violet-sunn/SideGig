@@ -22,7 +22,7 @@ export default function AdminLayout() {
     if (!isLoading && (!isAuthenticated || user?.role !== "admin")) {
       toast({
         title: "Доступ запрещен",
-        description: "У вас нет прав для доступа к админ панели",
+        description: "У Вас нет прав для доступа к админ панели",
         variant: "destructive",
       });
       setTimeout(() => {
@@ -51,7 +51,7 @@ export default function AdminLayout() {
       } else {
         return <div className="p-8 text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Доступ запрещён</h2>
-          <p className="text-gray-600">У вас недостаточно прав для управления ролями пользователей.</p>
+          <p className="text-gray-600">У Вас недостаточно прав для управления ролями пользователей.</p>
         </div>;
       }
     } else if (location === '/admin/tasks') {

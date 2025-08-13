@@ -90,7 +90,7 @@ export default function MyBids() {
               <CardContent className="p-12 text-center">
                 <Handshake className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  У вас пока нет заявок
+                  У Вас пока нет заявок
                 </h3>
                 <p className="text-gray-500 mb-6">
                   Начните подавать заявки на интересные проекты

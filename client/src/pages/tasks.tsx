@@ -258,7 +258,7 @@ export default function Tasks() {
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">
                     {hasActiveFilters 
                       ? "Задачи не найдены" 
-                      : (userRole === "client" ? "У вас пока нет задач" : "У вас пока нет проектов")
+                      : (userRole === "client" ? "У Вас пока нет задач" : "У Вас пока нет проектов")
                     }
                   </h3>
                   <p className="text-gray-600 mb-6">

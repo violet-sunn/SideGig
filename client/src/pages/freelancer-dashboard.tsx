@@ -193,7 +193,7 @@ export default function FreelancerDashboard() {
                 ) : (
                   <div className="text-center py-8">
                     <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500 mb-4">У вас пока нет активных проектов</p>
+                    <p className="text-gray-500 mb-4">У Вас пока нет активных проектов</p>
                     <Link href="/browse-tasks">
                       <span className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
                         <Search className="h-4 w-4 mr-2" />

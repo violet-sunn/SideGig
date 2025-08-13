@@ -399,7 +399,7 @@ export default function Reviews() {
                 ) : (
                   <div className="text-center py-8">
                     <Star className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600">У вас пока нет отзывов</p>
+                    <p className="text-gray-600">У Вас пока нет отзывов</p>
                   </div>
                 )}
               </CardContent>
