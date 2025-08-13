@@ -14,7 +14,7 @@ export async function apiRequest(
 ): Promise<Response> {
   const headers: any = data ? { "Content-Type": "application/json" } : {};
   
-  // Add impersonation header for development
+  // Add impersonation header for development only
   if (import.meta.env.DEV) {
     const urlParams = new URLSearchParams(window.location.search);
     const impersonateId = urlParams.get('impersonate');
@@ -44,7 +44,7 @@ export const getQueryFn: <T>(options: {
     let finalUrl = url;
     const headers: any = {};
     
-    // Handle impersonation parameter from query key
+    // Handle impersonation parameter from query key (development only)
     if (import.meta.env.DEV && params?.impersonate) {
       const urlObj = new URL(url, window.location.origin);
       urlObj.searchParams.set('impersonate', params.impersonate);

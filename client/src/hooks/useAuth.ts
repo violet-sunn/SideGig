@@ -7,7 +7,16 @@ export function useAuth() {
   const impersonateId = urlParams.get('impersonate');
   
   // Only use impersonation in development and when explicitly set
-  const shouldImpersonate = process.env.NODE_ENV === 'development' && impersonateId;
+  // Use import.meta.env.DEV instead of process.env.NODE_ENV for more reliable detection
+  const isDevelopment = import.meta.env.DEV;
+  const shouldImpersonate = isDevelopment && impersonateId;
+  
+  // Clean up impersonation parameter from URL if we're in production
+  if (!isDevelopment && impersonateId) {
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.delete('impersonate');
+    window.history.replaceState({}, '', newUrl.pathname + newUrl.search);
+  }
   
   const { data: user, isLoading } = useQuery<User>({
     queryKey: shouldImpersonate ? ["/api/auth/user", { impersonate: impersonateId }] : ["/api/auth/user"],
