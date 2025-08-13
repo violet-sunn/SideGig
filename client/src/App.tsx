@@ -27,6 +27,8 @@ import Onboarding from "@/pages/onboarding";
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
 
+  // Debug logging
+  console.log('[Router] Auth state:', { isAuthenticated, isLoading, user });
 
   if (isLoading) {
     return (
@@ -36,6 +38,17 @@ function Router() {
     );
   }
 
+  // Debug which path we're taking
+  const authCheck = !isAuthenticated;
+  const onboardingCheck = user && user.onboardingCompleted === false;
+  console.log('[Router] Route selection:', { 
+    authCheck, 
+    onboardingCheck, 
+    userRole: user?.role,
+    onboardingCompleted: user?.onboardingCompleted,
+    path: window.location.pathname 
+  });
+
   return (
     <Switch>
       {!isAuthenticated ? (
@@ -43,7 +56,7 @@ function Router() {
           <Route path="/" component={Landing} />
           <Route component={NotFound} />
         </>
-      ) : user && !user.onboardingCompleted ? (
+      ) : user && user.onboardingCompleted === false ? (
         <>
           <Route path="/onboarding" component={Onboarding} />
           <Route component={() => <Onboarding />} />

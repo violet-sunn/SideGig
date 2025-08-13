@@ -7,8 +7,8 @@ import { buildUrl } from "@/lib/navigation";
 export function useNavigate() {
   const [, setLocation] = useLocation();
   
-  return (path: string, preserveImpersonation = false) => {
-    // Use buildUrl with optional impersonation preservation
+  return (path: string, preserveImpersonation = true) => {
+    // Use buildUrl with impersonation preservation (default true in dev)
     const urlWithParams = buildUrl(path, preserveImpersonation);
     setLocation(urlWithParams);
   };
