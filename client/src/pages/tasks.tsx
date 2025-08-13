@@ -18,6 +18,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Search, Filter, Plus, ListTodo } from "lucide-react";
 import { Link } from "wouter";
+import { buildUrl } from "@/lib/navigation";
 
 
 export default function Tasks() {
@@ -141,7 +142,7 @@ export default function Tasks() {
                 </p>
               </div>
               {userRole === "client" && (
-                <Link href="/create-task">
+                <Link href={buildUrl("/create-task")}>
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
                     Создать задачу
@@ -247,7 +248,7 @@ export default function Tasks() {
                           {task.category && (
                             <Badge variant="outline">{task.category}</Badge>
                           )}
-                          <Link href={`/tasks/${task.id}`}>
+                          <Link href={buildUrl(`/tasks/${task.id}`)}>
                             <Button variant="outline" size="sm">
                               Подробнее
                             </Button>
@@ -279,14 +280,14 @@ export default function Tasks() {
                   {!hasActiveFilters && (
                     <>
                       {userRole === "client" ? (
-                        <Link href="/create-task">
+                        <Link href={buildUrl("/create-task")}>
                           <Button>
                             <Plus className="h-4 w-4 mr-2" />
                             Создать задачу
                           </Button>
                         </Link>
                       ) : (
-                        <Link href="/browse-tasks">
+                        <Link href={buildUrl("/browse-tasks")}>
                           <Button>
                             <Search className="h-4 w-4 mr-2" />
                             Найти задачи
