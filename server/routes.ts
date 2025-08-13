@@ -51,6 +51,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getEffectiveUserId(req);
       const user = await storage.getUser(userId);
+      
+      // Debug logging for role investigation
+      console.log(`[API /auth/user] Returning user:`, {
+        id: user?.id,
+        email: user?.email,
+        firstName: user?.firstName,
+        lastName: user?.lastName,
+        role: user?.role,
+        timestamp: new Date().toISOString(),
+        userAgent: req.headers['user-agent']?.substring(0, 100)
+      });
+      
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);

@@ -70,7 +70,8 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      staleTime: Infinity,
+      // Reduce staleTime for user auth data to avoid role caching issues
+      staleTime: 5 * 60 * 1000, // 5 minutes instead of Infinity
       retry: false,
     },
     mutations: {
