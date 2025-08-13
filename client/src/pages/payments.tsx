@@ -24,6 +24,13 @@ export default function Payments() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const queryClient = useQueryClient();
 
+  // Get impersonation parameter for query keys
+  const urlParams = new URLSearchParams(window.location.search);
+  const impersonateId = urlParams.get('impersonate');
+  const isDevelopment = import.meta.env.DEV;
+  const shouldImpersonate = isDevelopment && impersonateId;
+  const queryParams = shouldImpersonate ? { impersonate: impersonateId } : undefined;
+
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -40,7 +47,7 @@ export default function Payments() {
   }, [isAuthenticated, isLoading, toast]);
 
   const { data: payments, isLoading: paymentsLoading } = useQuery<any[]>({
-    queryKey: ["/api/payments"],
+    queryKey: queryParams ? ["/api/payments", queryParams] : ["/api/payments"],
     enabled: isAuthenticated,
     retry: false,
   });
@@ -48,7 +55,7 @@ export default function Payments() {
   const { data: stats, isLoading: statsLoading } = useQuery<{
     role: string;
   }>({
-    queryKey: ["/api/users/stats"],
+    queryKey: queryParams ? ["/api/users/stats", queryParams] : ["/api/users/stats"],
     enabled: isAuthenticated,
     retry: false,
   });

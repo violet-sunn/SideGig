@@ -32,8 +32,15 @@ export default function MyBids() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  // Get impersonation parameter for query keys
+  const urlParams = new URLSearchParams(window.location.search);
+  const impersonateId = urlParams.get('impersonate');
+  const isDevelopment = import.meta.env.DEV;
+  const shouldImpersonate = isDevelopment && impersonateId;
+  const queryParams = shouldImpersonate ? { impersonate: impersonateId } : undefined;
+
   const { data: bids = [], isLoading } = useQuery<Bid[]>({
-    queryKey: ["/api/bids/my"],
+    queryKey: queryParams ? ["/api/bids/my", queryParams] : ["/api/bids/my"],
     enabled: !!user && user.role === "freelancer",
   });
 

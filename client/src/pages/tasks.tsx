@@ -28,6 +28,13 @@ export default function Tasks() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("created_at");
 
+  // Get impersonation parameter for query keys
+  const urlParams = new URLSearchParams(window.location.search);
+  const impersonateId = urlParams.get('impersonate');
+  const isDevelopment = import.meta.env.DEV;
+  const shouldImpersonate = isDevelopment && impersonateId;
+  const queryParams = shouldImpersonate ? { impersonate: impersonateId } : undefined;
+
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -44,7 +51,7 @@ export default function Tasks() {
   }, [isAuthenticated, isLoading, toast]);
 
   const { data: tasks, isLoading: tasksLoading, error } = useQuery<any[]>({
-    queryKey: ["/api/tasks/my"],
+    queryKey: queryParams ? ["/api/tasks/my", queryParams] : ["/api/tasks/my"],
     enabled: isAuthenticated,
     retry: false,
   });

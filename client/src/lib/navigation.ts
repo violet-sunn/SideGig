@@ -1,6 +1,6 @@
 // Navigation utilities that preserve impersonation state only for specific admin flows
 
-export function buildUrl(path: string, preserveImpersonation = false): string {
+export function buildUrl(path: string, preserveImpersonation = true): string {
   const url = new URL(path, window.location.origin);
   
   // SECURITY: Only preserve impersonation in development mode

@@ -22,6 +22,13 @@ export default function Messages() {
   const [messageText, setMessageText] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Get impersonation parameter for query keys
+  const urlParams = new URLSearchParams(window.location.search);
+  const impersonateId = urlParams.get('impersonate');
+  const isDevelopment = import.meta.env.DEV;
+  const shouldImpersonate = isDevelopment && impersonateId;
+  const queryParams = shouldImpersonate ? { impersonate: impersonateId } : undefined;
+
   // Check URL params to auto-select task
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -47,13 +54,13 @@ export default function Messages() {
   }, [isAuthenticated, isLoading, toast]);
 
   const { data: conversations, isLoading: conversationsLoading } = useQuery<any[]>({
-    queryKey: ["/api/conversations"],
+    queryKey: queryParams ? ["/api/conversations", queryParams] : ["/api/conversations"],
     enabled: isAuthenticated,
     retry: false,
   });
 
   const { data: messages, isLoading: messagesLoading } = useQuery<any[]>({
-    queryKey: [`/api/messages/task/${selectedTaskId}`],
+    queryKey: queryParams ? [`/api/messages/task/${selectedTaskId}`, queryParams] : [`/api/messages/task/${selectedTaskId}`],
     enabled: isAuthenticated && !!selectedTaskId,
     retry: false,
   });
