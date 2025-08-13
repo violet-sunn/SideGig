@@ -35,6 +35,9 @@ function devAuthBypass(req: any, res: any, next: any) {
   // Use security guard to check impersonation
   const impersonateId = ImpersonationSecurityGuard.getImpersonationId(req);
   
+  console.log("Debug: devAuthBypass called with impersonateId:", impersonateId);
+  console.log("Debug: NODE_ENV:", process.env.NODE_ENV);
+  
   if (impersonateId) {
     // Create fake user object for development testing only
     req.user = {
@@ -42,9 +45,11 @@ function devAuthBypass(req: any, res: any, next: any) {
         sub: impersonateId
       }
     };
+    console.log("Debug: devAuthBypass - using impersonation for user:", impersonateId);
     return next();
   }
   
+  console.log("Debug: devAuthBypass - no impersonation, falling back to real auth");
   // In production or when no impersonation, use real authentication
   return isAuthenticated(req, res, next);
 }
@@ -633,7 +638,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Accept bid endpoint (alternative route for UI compatibility)
-  app.patch("/api/bids/:id/accept", isAuthenticated, async (req: any, res) => {
+  app.patch("/api/bids/:id/accept", devAuthBypass, async (req: any, res) => {
     try {
       const { id } = req.params;
       console.log("Debug: Accept bid endpoint called with ID:", id);
@@ -657,7 +662,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verify that the current user is the client who owns the task
-      const userId = req.user.claims.sub;
+      const userId = getEffectiveUserId(req);
       console.log("Debug: Current user ID:", userId, "Task client ID:", task.clientId);
       
       if (task.clientId !== userId) {
