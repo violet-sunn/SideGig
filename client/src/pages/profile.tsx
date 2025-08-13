@@ -49,6 +49,13 @@ export default function Profile() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const queryClient = useQueryClient();
 
+  // Get impersonation for queryKey consistency
+  const urlParams = new URLSearchParams(window.location.search);
+  const impersonateId = urlParams.get('impersonate');
+  const isDevelopment = import.meta.env.DEV;
+  const shouldImpersonate = isDevelopment && impersonateId;
+  const queryParams = shouldImpersonate ? { impersonate: impersonateId } : undefined;
+
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [profileData, setProfileData] = useState({
@@ -95,19 +102,19 @@ export default function Profile() {
   }, [isAuthenticated, isLoading, toast]);
 
   const { data: profile, isLoading: profileLoading } = useQuery<any>({
-    queryKey: ["/api/profile"],
+    queryKey: queryParams ? ["/api/profile", queryParams] : ["/api/profile"],
     enabled: isAuthenticated,
     retry: false,
   });
 
   const { data: portfolio, isLoading: portfolioLoading } = useQuery<any[]>({
-    queryKey: ["/api/profile/portfolio"],
+    queryKey: queryParams ? ["/api/profile/portfolio", queryParams] : ["/api/profile/portfolio"],
     enabled: isAuthenticated,
     retry: false,
   });
 
   const { data: reviews, isLoading: reviewsLoading } = useQuery<any[]>({
-    queryKey: ["/api/profile/reviews"],
+    queryKey: queryParams ? ["/api/profile/reviews", queryParams] : ["/api/profile/reviews"],
     enabled: isAuthenticated,
     retry: false,
   });
@@ -121,7 +128,7 @@ export default function Profile() {
     responseTime?: string;
     completionRate?: string;
   }>({
-    queryKey: ["/api/users/stats"],
+    queryKey: queryParams ? ["/api/users/stats", queryParams] : ["/api/users/stats"],
     enabled: isAuthenticated,
     retry: false,
   });
@@ -137,8 +144,8 @@ export default function Profile() {
         description: "Профиль обновлен",
       });
       setIsEditing(false);
-      queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      queryClient.invalidateQueries({ queryKey: queryParams ? ["/api/profile", queryParams] : ["/api/profile"] });
+      queryClient.invalidateQueries({ queryKey: shouldImpersonate ? ["/api/auth/user", { impersonate: impersonateId }] : ["/api/auth/user"] });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
@@ -213,7 +220,7 @@ export default function Profile() {
       toast({ title: "Успешно!", description: "Проект добавлен в портфолио" });
       setShowAddPortfolio(false);
       setNewPortfolioItem({ title: "", description: "", technologies: "", projectUrl: "", imageUrl: "", completedAt: null });
-      queryClient.invalidateQueries({ queryKey: ["/api/profile/portfolio"] });
+      queryClient.invalidateQueries({ queryKey: queryParams ? ["/api/profile/portfolio", queryParams] : ["/api/profile/portfolio"] });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
