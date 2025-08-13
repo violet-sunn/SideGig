@@ -77,7 +77,17 @@ export default function ClientDashboard() {
 
   const updateBidMutation = useMutation({
     mutationFn: async ({ bidId, status }: { bidId: string; status: string }) => {
-      const response = await apiRequest("PATCH", `/api/bids/${bidId}/status`, { status });
+      let endpoint = `/api/bids/${bidId}/status`;
+      let body: any = { status };
+      
+      if (status === "accepted") {
+        endpoint = `/api/bids/${bidId}/accept`;
+        body = {};
+      }
+      
+      // Add impersonation to query params only in development
+      const url = shouldImpersonate ? `${endpoint}?impersonate=${impersonateId}` : endpoint;
+      const response = await apiRequest("PATCH", url, body);
       return response.json();
     },
     onSuccess: (data, variables) => {
