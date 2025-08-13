@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { buildUrl } from "@/lib/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import { useImpersonation } from "@/hooks/useImpersonation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { 
@@ -31,7 +29,6 @@ interface SidebarProps {
 export default function Sidebar({ userRole }: SidebarProps) {
   const [location] = useLocation();
   const { user } = useAuth();
-  const { preserveImpersonationInUrl } = useImpersonation();
 
   const clientNavItems = [
     { href: "/", icon: BarChart3, label: "Дашборд" },
@@ -115,7 +112,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
             
             return (
               <li key={item.href}>
-                <Link href={buildUrl(item.href)}>
+                <Link href={item.href}>
                   <span className={cn(
                     "flex items-center p-3 rounded-lg transition-colors cursor-pointer",
                     isActive 
