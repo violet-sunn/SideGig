@@ -518,11 +518,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/bids", devAuthBypass, async (req: any, res) => {
     try {
       const userId = getEffectiveUserId(req);
-      // Convert deadline string to Date
       const bidData = insertBidSchema.parse({
         ...req.body,
         freelancerId: userId,
-        deadline: new Date(req.body.deadline),
       });
 
       const bid = await storage.createBid(bidData);

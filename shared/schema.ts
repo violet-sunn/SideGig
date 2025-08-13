@@ -385,7 +385,7 @@ export const insertDraftTaskSchema = createInsertSchema(tasks).omit({
   updatedAt: true,
   assignedFreelancerId: true,
 }).extend({
-  budget: z.coerce.number().optional().nullable(),
+  budget: z.coerce.string().optional(),
   deadline: z.coerce.date().optional().nullable(),
   description: z.string().optional().default(""),
   category: z.string().optional().default("Другое"),
@@ -401,7 +401,9 @@ export const insertBidSchema = createInsertSchema(bids).omit({
   updatedAt: true,
   status: true,
 }).extend({
-  deadline: z.coerce.date(), // Remove validation temporarily to debug
+  amount: z.coerce.string(), // Accept numbers from frontend, convert to string for decimal
+  deadline: z.coerce.date(), // Accept various date formats
+  counterOfferAmount: z.coerce.string().optional(), // Handle optional counter offer
 });
 
 export const insertMessageSchema = createInsertSchema(messages).omit({
