@@ -88,6 +88,10 @@ export default function Tasks() {
     }
   });
 
+  // Check if filters are applied
+  const hasActiveFilters = searchTerm.trim() !== "" || statusFilter !== "all";
+  const hasNoOriginalTasks = !tasks || tasks.length === 0;
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "draft": return "bg-gray-100 text-gray-800";
@@ -252,28 +256,37 @@ export default function Tasks() {
                 <CardContent className="text-center py-16">
                   <ListTodo className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    {userRole === "client" ? "У вас пока нет задач" : "У вас пока нет проектов"}
+                    {hasActiveFilters 
+                      ? "Задачи не найдены" 
+                      : (userRole === "client" ? "У вас пока нет задач" : "У вас пока нет проектов")
+                    }
                   </h3>
                   <p className="text-gray-600 mb-6">
-                    {userRole === "client" 
-                      ? "Создайте первую задачу, чтобы найти исполнителя"
-                      : "Найдите интересные задачи для работы"
+                    {hasActiveFilters 
+                      ? "Попробуйте изменить параметры поиска или фильтры"
+                      : (userRole === "client" 
+                        ? "Создайте первую задачу, чтобы найти исполнителя"
+                        : "Найдите интересные задачи для работы")
                     }
                   </p>
-                  {userRole === "client" ? (
-                    <Link href="/create-task">
-                      <Button>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Создать задачу
-                      </Button>
-                    </Link>
-                  ) : (
-                    <Link href="/browse-tasks">
-                      <Button>
-                        <Search className="h-4 w-4 mr-2" />
-                        Найти задачи
-                      </Button>
-                    </Link>
+                  {!hasActiveFilters && (
+                    <>
+                      {userRole === "client" ? (
+                        <Link href="/create-task">
+                          <Button>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Создать задачу
+                          </Button>
+                        </Link>
+                      ) : (
+                        <Link href="/browse-tasks">
+                          <Button>
+                            <Search className="h-4 w-4 mr-2" />
+                            Найти задачи
+                          </Button>
+                        </Link>
+                      )}
+                    </>
                   )}
                 </CardContent>
               </Card>
