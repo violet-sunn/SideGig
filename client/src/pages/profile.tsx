@@ -924,17 +924,6 @@ export default function Profile() {
                       )}
                       
                       <div>
-                        <Label htmlFor="location">Местоположение</Label>
-                        <Input
-                          id="location"
-                          value={profileData.location}
-                          onChange={(e) => setProfileData({ ...profileData, location: e.target.value })}
-                          disabled={!isEditing}
-                          placeholder="Москва, Россия"
-                        />
-                      </div>
-                      
-                      <div>
                         <Label htmlFor="website">Веб-сайт</Label>
                         <Input
                           id="website"
