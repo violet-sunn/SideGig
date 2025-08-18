@@ -325,7 +325,7 @@ export class DatabaseStorage implements IStorage {
       .from(bids)
       .innerJoin(tasks, eq(bids.taskId, tasks.id))
       .innerJoin(users, eq(bids.freelancerId, users.id))
-      .where(and(eq(tasks.clientId, clientId), eq(bids.status, "pending")))
+      .where(and(eq(tasks.clientId, clientId), eq(bids.status, "pending"), eq(tasks.status, "open")))
       .orderBy(desc(bids.createdAt));
   }
 

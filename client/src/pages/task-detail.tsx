@@ -755,7 +755,7 @@ export default function TaskDetail() {
                                   </p>
                                 </div>
 
-                                {user.role === "client" && user.id === task.clientId && bid.status === "pending" && (
+                                {user.role === "client" && user.id === task.clientId && bid.status === "pending" && task.status === "open" && (
                                   <div className="flex gap-2 justify-end">
                                     <Button 
                                       variant="outline"
