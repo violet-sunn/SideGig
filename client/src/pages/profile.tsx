@@ -16,6 +16,17 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { 
@@ -41,7 +52,10 @@ import {
   Clock,
   Trophy,
   Target,
-  Globe
+  Globe,
+  AlertTriangle,
+  Trash2,
+  Save
 } from "lucide-react";
 
 export default function Profile() {
@@ -213,6 +227,10 @@ export default function Profile() {
     updateProfileMutation.mutate(profileData);
   };
 
+  const handleSaveSettings = () => {
+    updateProfileMutation.mutate(profileData);
+  };
+
   const addPortfolioItemMutation = useMutation({
     mutationFn: async (portfolioData: any) => {
       const response = await apiRequest("/api/profile/portfolio", "POST", portfolioData);
@@ -233,6 +251,35 @@ export default function Profile() {
       toast({ title: "Ошибка", description: "Не удалось добавить проект", variant: "destructive" });
     },
   });
+
+  const deleteAccountMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("/api/profile", "DELETE");
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Аккаунт удален",
+        description: "Ваш аккаунт успешно удален. Перенаправление на главную страницу...",
+      });
+      // Clear auth state and redirect to home
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 2000);
+    },
+    onError: (error: any) => {
+      console.error("Delete account error:", error);
+      toast({
+        title: "Ошибка",
+        description: error?.message || "Не удалось удалить аккаунт",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteAccount = () => {
+    deleteAccountMutation.mutate();
+  };
 
   const handleCancel = () => {
     setIsEditing(false);
@@ -1033,6 +1080,117 @@ export default function Profile() {
                             />
                           </div>
                         </>
+                      )}
+                      
+                      {!isEditing ? (
+                        <Button onClick={() => setIsEditing(true)}>
+                          <Edit3 className="h-4 w-4 mr-2" />
+                          Редактировать настройки
+                        </Button>
+                      ) : (
+                        <div className="flex gap-2">
+                          <Button onClick={handleSaveSettings}>
+                            <Save className="h-4 w-4 mr-2" />
+                            Сохранить
+                          </Button>
+                          <Button variant="outline" onClick={() => setIsEditing(false)}>
+                            Отмена
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Danger Zone - Account Deletion */}
+                  <Card className="border-red-200">
+                    <CardHeader>
+                      <CardTitle className="flex items-center text-red-600">
+                        <AlertTriangle className="h-5 w-5 mr-2" />
+                        Опасная зона
+                      </CardTitle>
+                      <p className="text-sm text-gray-600">
+                        Необратимые действия с вашим аккаунтом
+                      </p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="p-4 bg-red-50 border border-red-200 rounded-lg mb-4">
+                        <h4 className="font-medium text-red-800 mb-2">Удаление аккаунта</h4>
+                        <p className="text-sm text-red-700 mb-4">
+                          При удалении аккаунта будут безвозвратно удалены:
+                        </p>
+                        <ul className="text-sm text-red-700 list-disc list-inside space-y-1 mb-4">
+                          <li>Ваш профиль и все персональные данные</li>
+                          <li>История сообщений и уведомления</li>
+                          <li>Отзывы и рейтинги</li>
+                          {userRole === "freelancer" && <li>История заявок и заработков</li>}
+                          {userRole === "client" && <li>Созданные проекты и история платежей</li>}
+                          <li>Все связанные данные на платформе</li>
+                        </ul>
+                        <p className="text-sm text-red-700 font-medium">
+                          ⚠️ Это действие нельзя отменить!
+                        </p>
+                      </div>
+                      
+                      {userRole === "admin" ? (
+                        <div className="p-3 bg-gray-100 rounded text-center">
+                          <p className="text-gray-600 text-sm">
+                            Администраторы не могут удалить свой аккаунт самостоятельно
+                          </p>
+                        </div>
+                      ) : (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive" className="w-full">
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Удалить аккаунт навсегда
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="flex items-center text-red-600">
+                                <AlertTriangle className="h-5 w-5 mr-2" />
+                                Подтвердите удаление аккаунта
+                              </AlertDialogTitle>
+                              <AlertDialogDescription className="text-left space-y-3">
+                                <p>
+                                  Вы уверены, что хотите <strong>навсегда удалить</strong> свой аккаунт?
+                                </p>
+                                <p className="text-red-600 font-medium">
+                                  Все ваши данные будут удалены безвозвратно:
+                                </p>
+                                <ul className="list-disc list-inside text-sm space-y-1">
+                                  <li>Профиль и личная информация</li>
+                                  <li>История проектов и сообщений</li>
+                                  <li>Отзывы и рейтинги</li>
+                                  <li>Финансовая история</li>
+                                </ul>
+                                <p className="font-medium">
+                                  После удаления вы сможете зарегистрироваться заново, но все данные будут потеряны.
+                                </p>
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Отмена</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={handleDeleteAccount}
+                                disabled={deleteAccountMutation.isPending}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                {deleteAccountMutation.isPending ? (
+                                  <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    Удаляю...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Да, удалить навсегда
+                                  </>
+                                )}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       )}
                     </CardContent>
                   </Card>

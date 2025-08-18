@@ -1149,6 +1149,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete user account endpoint
+  app.delete('/api/profile', robustAuth, async (req: any, res) => {
+    try {
+      const userId = getEffectiveUserId(req);
+      
+      // Don't allow admins to delete their own accounts
+      const user = await storage.getUser(userId);
+      if (user?.role === 'admin') {
+        return res.status(403).json({ 
+          message: 'Администраторы не могут удалить свой аккаунт. Обратитесь к другому администратору.' 
+        });
+      }
+      
+      console.log('Deleting user account:', userId);
+      await storage.deleteUserAccount(userId);
+      
+      // Clear the session/auth
+      if (req.session) {
+        req.session.destroy();
+      }
+      
+      res.json({ message: 'Аккаунт успешно удален' });
+    } catch (error) {
+      console.error('Error deleting user account:', error);
+      if (error instanceof Error) {
+        res.status(500).json({ message: 'Не удалось удалить аккаунт', error: error.message });
+      } else {
+        res.status(500).json({ message: 'Не удалось удалить аккаунт', error: String(error) });
+      }
+    }
+  });
+
   const httpServer = createServer(app);
   
   // Setup WebSocket server

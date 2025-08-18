@@ -36,6 +36,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateUserProfile(userId: string, profileData: any): Promise<User>;
+  deleteUserAccount(userId: string): Promise<void>;
   
   // Task operations
   createTask(task: InsertTask): Promise<Task>;
@@ -130,6 +131,52 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     return user;
+  }
+
+  async deleteUserAccount(userId: string): Promise<void> {
+    // Delete all user-related data in correct order (respecting foreign key constraints)
+    
+    // Delete notifications
+    await db.delete(notifications).where(eq(notifications.userId, userId));
+    
+    // Delete messages (both sent and received)
+    await db.delete(messages).where(
+      or(eq(messages.senderId, userId), eq(messages.receiverId, userId))
+    );
+    
+    // Delete bids by this freelancer
+    await db.delete(bids).where(eq(bids.freelancerId, userId));
+    
+    // Delete reviews (both given and received)
+    await db.delete(reviews).where(
+      or(eq(reviews.reviewerId, userId), eq(reviews.revieweeId, userId))
+    );
+    
+    // Delete disputes initiated by or against this user
+    await db.delete(disputes).where(
+      or(eq(disputes.initiatorId, userId), eq(disputes.defendantId, userId))
+    );
+    
+    // Delete payments related to this user
+    await db.delete(payments).where(
+      or(eq(payments.freelancerId, userId), eq(payments.clientId, userId))
+    );
+    
+    // Delete or reassign tasks
+    // For tasks where user is client - delete them
+    await db.delete(tasks).where(eq(tasks.clientId, userId));
+    
+    // For tasks where user is assigned freelancer - unassign them
+    await db
+      .update(tasks)
+      .set({ 
+        assignedFreelancerId: null,
+        status: 'open' // Reset status to open if freelancer is removed
+      })
+      .where(eq(tasks.assignedFreelancerId, userId));
+    
+    // Finally, delete the user
+    await db.delete(users).where(eq(users.id, userId));
   }
 
   // Task operations
