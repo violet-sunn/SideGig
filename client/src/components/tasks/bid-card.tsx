@@ -67,7 +67,7 @@ export default function BidCard({ bid, isOwner = false, canAccept = false, canRe
       
       // Add impersonation to query params only in development
       const url = shouldImpersonate ? `${endpoint}?impersonate=${impersonateId}` : endpoint;
-      const response = await apiRequest("PATCH", url, body);
+      const response = await apiRequest(url, "PATCH", body);
       return response.json();
     },
     onSuccess: (_, { status }) => {
@@ -102,7 +102,7 @@ export default function BidCard({ bid, isOwner = false, canAccept = false, canRe
   const submitCounterOfferMutation = useMutation({
     mutationFn: async (data: any) => {
       const url = shouldImpersonate ? `/api/bids/${bid.id}/counter-offer?impersonate=${impersonateId}` : `/api/bids/${bid.id}/counter-offer`;
-      const response = await apiRequest("PATCH", url, data);
+      const response = await apiRequest(url, "PATCH", data);
       return response.json();
     },
     onSuccess: () => {
