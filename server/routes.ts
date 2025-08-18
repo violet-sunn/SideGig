@@ -238,6 +238,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const taskData = insertDraftTaskSchema.parse({
         ...req.body,
         clientId: userId,
+        budget: req.body.budget || "0", // Provide default budget for draft
       });
 
       const task = await storage.createTask(taskData);
@@ -697,8 +698,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error) {
       console.error("Error accepting bid - Full error:", error);
-      console.error("Error stack:", error.stack);
-      res.status(500).json({ message: "Failed to accept bid", error: error.message });
+      if (error instanceof Error) {
+        console.error("Error stack:", error.stack);
+        res.status(500).json({ message: "Failed to accept bid", error: error.message });
+      } else {
+        res.status(500).json({ message: "Failed to accept bid", error: String(error) });
+      }
     }
   });
 

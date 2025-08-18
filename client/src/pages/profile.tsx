@@ -316,11 +316,28 @@ export default function Profile() {
                 <p className="text-gray-600">Профессиональное портфолио и настройки аккаунта</p>
               </div>
               <div className="flex items-center gap-3">
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    const profileUrl = `${window.location.origin}/profile?user=${user?.id}`;
+                    navigator.clipboard.writeText(profileUrl);
+                    toast({
+                      title: "Ссылка скопирована!",
+                      description: "Ссылка на профиль скопирована в буфер обмена",
+                    });
+                  }}
+                >
                   <Share2 className="h-4 w-4 mr-2" />
                   Поделиться профилем
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    window.open(`/profile?user=${user?.id}&preview=true`, '_blank');
+                  }}
+                >
                   <Eye className="h-4 w-4 mr-2" />
                   Предварительный просмотр
                 </Button>

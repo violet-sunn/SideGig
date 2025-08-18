@@ -155,6 +155,20 @@ export default function TaskDetail() {
     },
   });
 
+  const rejectBidMutation = useMutation({
+    mutationFn: async (bidId: string) => {
+      return await apiRequest(`/api/bids/${bidId}/status`, "PATCH", { status: "rejected" });
+    },
+    onSuccess: () => {
+      toast({ title: "Заявка отклонена!", description: "Заявка была отклонена" });
+      queryClient.invalidateQueries({ queryKey: queryParams ? [`/api/tasks/${taskId}`, queryParams] : [`/api/tasks/${taskId}`] });
+      queryClient.invalidateQueries({ queryKey: queryParams ? [`/api/bids/task/${taskId}`, queryParams] : [`/api/bids/task/${taskId}`] });
+    },
+    onError: (error) => {
+      toast({ title: "Ошибка", description: "Не удалось отклонить заявку", variant: "destructive" });
+    },
+  });
+
   const sendMessageMutation = useMutation({
     mutationFn: async (content: string) => {
       return await apiRequest("/api/messages", "POST", {
@@ -761,9 +775,11 @@ export default function TaskDetail() {
                                       variant="outline"
                                       size="sm"
                                       className="text-red-600 hover:text-red-700"
+                                      onClick={() => rejectBidMutation.mutate(bid.id)}
+                                      disabled={rejectBidMutation.isPending}
                                     >
                                       <XCircle className="h-4 w-4 mr-1" />
-                                      Отклонить
+                                      {rejectBidMutation.isPending ? "Отклонение..." : "Отклонить"}
                                     </Button>
                                     <Button 
                                       size="sm"

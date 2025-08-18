@@ -22,6 +22,7 @@ import Profile from "@/pages/profile";
 import MyBids from "@/pages/my-bids";
 import ActiveProjects from "@/pages/active-projects";
 import Earnings from "@/pages/earnings";
+import Notifications from "@/pages/notifications";
 import Onboarding from "@/pages/onboarding";
 
 function Router() {
@@ -81,6 +82,7 @@ function Router() {
           <Route path="/payments" component={Payments} />
           <Route path="/reviews" component={Reviews} />
           <Route path="/disputes" component={Disputes} />
+          <Route path="/notifications" component={Notifications} />
           <Route path="/profile" component={Profile} />
           <Route component={NotFound} />
         </>

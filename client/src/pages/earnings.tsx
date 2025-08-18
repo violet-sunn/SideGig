@@ -173,7 +173,29 @@ export default function Earnings() {
           {/* Actions */}
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-gray-900">История транзакций</h2>
-            <Button variant="outline">
+            <Button 
+              variant="outline"
+              onClick={() => {
+                // Create CSV export of earnings data
+                const csvContent = "data:text/csv;charset=utf-8," + 
+                  "Дата,Проект,Тип,Сумма,Статус\n" +
+                  earnings.map(earning => 
+                    `${new Date(earning.createdAt).toLocaleDateString('ru-RU')},` +
+                    `"${earning.task?.title || 'Неизвестный проект'}",` +
+                    `${getTypeText(earning.type)},` +
+                    `${earning.amount} ₽,` +
+                    `${getStatusText(earning.status)}`
+                  ).join("\n");
+                
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `earnings_report_${new Date().toISOString().split('T')[0]}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }}
+            >
               <Download className="h-4 w-4 mr-2" />
               Скачать отчет
             </Button>
