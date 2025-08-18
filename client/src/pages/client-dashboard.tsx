@@ -87,7 +87,7 @@ export default function ClientDashboard() {
       
       // Add impersonation to query params only in development
       const url = shouldImpersonate ? `${endpoint}?impersonate=${impersonateId}` : endpoint;
-      const response = await apiRequest("PATCH", url, body);
+      const response = await apiRequest(url, "PATCH", body);
       return response.json();
     },
     onSuccess: (data, variables) => {
